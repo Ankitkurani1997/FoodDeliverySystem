@@ -2,12 +2,12 @@ package com.iisc.pods.pojo;
 
 public class DeliveryAgent {
 	
+	int agentId;
+	String status;
+	
 	public DeliveryAgent() {
 		status = "available";
 	}
-	
-	int agentId;
-	String status;
 
 	public int getAgentId() {
 		return agentId;

@@ -35,8 +35,8 @@ public class OrderService {
 	
 	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
 	Map<Integer, String> deliveryAgents = new TreeMap<>();
-	List<Integer> listOfCustomers = new ArrayList<>();
-	List<Order> orders = new ArrayList<>();
+	Map<Integer, Order> orders = new TreeMap<>();
+	//List<Order> orders = new ArrayList<>();
 	
 	int globalOrderId;
 	
@@ -84,12 +84,6 @@ public class OrderService {
 						deliveryAgents.put(agentId, "available");
 						System.out.println("agenetId is " + agentId);
 					}
-					else if(counter == 2)
-					{
-						int custId = Integer.parseInt(line);
-						listOfCustomers.add(custId);
-						System.out.println("custId is " + custId);
-					}
 				}
 			}
 		} catch (NumberFormatException e) {
@@ -103,7 +97,6 @@ public class OrderService {
 		Item item  = new Item();
 		item.setItemId(itemId);
 		item.setPrice(price);
-		item.setQty(qty);
 		if(restaurants.containsKey(restId))
 		{
 			List<Item> lst = restaurants.get(restId);
@@ -192,11 +185,40 @@ public class OrderService {
 				{
 					ord.setStatus("unassigned");
 				}
-				orders.add(ord);
+				orders.put(id ,ord);
 				System.out.println("Balance Reduced");
 				return id;
 			}
 		}
+	}
+	
+	public void agentSignIn(int agentId) {
+		
+		String status = deliveryAgents.get(agentId);
+		if(!status.equalsIgnoreCase("signed-in"))
+		{
+			int orderId = isAnyOrderUnAssigned();
+			if(orderId!=-1)
+				deliveryAgents.put(agentId, "unavailable");
+			else
+				deliveryAgents.put(agentId, "available");
+		}
+			
+	}
+	
+	// to be changed
+	public void agentSignOuts(int agentId) {
+		
+		String status = deliveryAgents.get(agentId);
+		if(!status.equalsIgnoreCase("signed-in"))
+		{
+			int orderId = isAnyOrderUnAssigned();
+			if(orderId!=-1)
+				deliveryAgents.put(agentId, "unavailable");
+			else
+				deliveryAgents.put(agentId, "available");
+		}
+			
 	}
 	
 	public int isAgentAvailable() {
@@ -209,16 +231,24 @@ public class OrderService {
 		return -1;
 	}
 	
+	public int isAnyOrderUnAssigned() {
+		for(Map.Entry<Integer, Order> order : orders.entrySet() ) {
+			if(order.getValue().getStatus().equalsIgnoreCase("unassigned")) {
+				order.getValue().setStatus("assigned");
+				return order.getKey();
+			}
+		}
+		return -1;
+	}
+	
 	public void clearData() throws IOException {
 		restaurants.clear();
 		deliveryAgents.clear();
-		listOfCustomers.clear();
 		
 		initializeData();
 		
 		System.out.println(restaurants.size());
 		System.out.println(deliveryAgents.size());
-		System.out.println(listOfCustomers.size());
 	}
 	
 }

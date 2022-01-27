@@ -3,7 +3,6 @@ package com.iisc.pods.pojo;
 public class Item {
 	int itemId;
 	int price;
-	int qty;
 	public int getItemId() {
 		return itemId;
 	}
@@ -16,15 +15,9 @@ public class Item {
 	public void setPrice(int price) {
 		this.price = price;
 	}
-	public int getQty() {
-		return qty;
-	}
-	public void setQty(int qty) {
-		this.qty = qty;
-	}
 	@Override
 	public String toString() {
-		return "Item [itemId=" + itemId + ", price=" + price + ", qty=" + qty + "]";
+		return "Item [itemId=" + itemId + ", price=" + price + "]";
 	}
 	
 }

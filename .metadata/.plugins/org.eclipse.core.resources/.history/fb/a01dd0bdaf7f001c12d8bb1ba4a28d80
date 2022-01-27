@@ -262,8 +262,9 @@ public class OrderService {
 	
 	public JSONObject getAgentDetails(int agentId) {	
 		JSONObject entity = new JSONObject(); 
-		entity.appendField("agentId", agentId);
-		entity.appendField("status", deliveryAgents.get(agentId));		
+		entity.appendField("orderId", orderId);
+		entity.appendField("status", orders.get(orderId).getStatus());
+		entity.appendField("agentId", orders.get(orderId).getAgentId());		
 		return entity;
 	}
 	
@@ -290,7 +291,9 @@ public class OrderService {
 	public void clearData() throws IOException {
 		orders.clear();
 		for(Map.Entry<Integer, String> agent : deliveryAgents.entrySet() ) {
-			agent.setValue("signed-out");
+			if(agent.getValue().equalsIgnoreCase("available")) {
+				agent.setValue("signed-out");
+			}
 		}
 	}
 	

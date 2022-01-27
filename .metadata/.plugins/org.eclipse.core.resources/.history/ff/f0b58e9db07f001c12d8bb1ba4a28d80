@@ -290,7 +290,10 @@ public class OrderService {
 	public void clearData() throws IOException {
 		orders.clear();
 		for(Map.Entry<Integer, String> agent : deliveryAgents.entrySet() ) {
-			agent.setValue("signed-out");
+			if(agent.getValue().equalsIgnoreCase("available")) {
+				agent.setValue("signed-out");
+				System.out.println("okok");
+			}
 		}
 	}
 	

@@ -90,16 +90,16 @@ public class DeliveryController {
 		if(num >= orderService.getGlobalOrderId() || num <1000) {
 			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
-		JSONObject entity = orderService.getOrderDetails(num);
-		return new ResponseEntity<Object>(entity, HttpStatus.OK);
+		System.out.println(num);
+		return ResponseEntity.status(HttpStatus.OK).body("Order Info Code 200");
 	}
 	
 	@GetMapping("/agent/{num}")
 	@ResponseBody
 	public ResponseEntity<Object> getAgentInfo(@PathVariable("num") int num) {
 		
-		JSONObject entity = orderService.getAgentDetails(num);
-		return new ResponseEntity<Object>(entity, HttpStatus.OK);
+		System.out.println(num);
+		return ResponseEntity.status(HttpStatus.OK).body("Order Info Code 200");
 	}
 	
 }

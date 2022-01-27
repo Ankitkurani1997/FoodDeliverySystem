@@ -291,6 +291,7 @@ public class OrderService {
 		orders.clear();
 		for(Map.Entry<Integer, String> agent : deliveryAgents.entrySet() ) {
 			agent.setValue("signed-out");
+			System.out.println("okok");
 		}
 	}
 	

@@ -252,19 +252,15 @@ public class OrderService {
 		}
 	}
 	
-	public JSONObject getOrderDetails(int orderId) {	
-		JSONObject entity = new JSONObject(); 
-		entity.appendField("orderId", orderId);
-		entity.appendField("status", orders.get(orderId).getStatus());
-		entity.appendField("agentId", orders.get(orderId).getAgentId());		
-		return entity;
-	}
-	
-	public JSONObject getAgentDetails(int agentId) {	
-		JSONObject entity = new JSONObject(); 
-		entity.appendField("agentId", agentId);
-		entity.appendField("status", deliveryAgents.get(agentId));		
-		return entity;
+	public boolean getOrderDetails(int orderId) {
+		if(orderId >= globalOrderId || orderId <1000) {
+			return false;
+		}
+		String status = orders.get(orderId).getStatus();
+		int agentId = orders.get(orderId).getAgentId();
+		
+		
+		return true;
 	}
 	
 	public int isAgentAvailable() {
@@ -290,7 +286,9 @@ public class OrderService {
 	public void clearData() throws IOException {
 		orders.clear();
 		for(Map.Entry<Integer, String> agent : deliveryAgents.entrySet() ) {
-			agent.setValue("signed-out");
+			if(agent.getValue().equalsIgnoreCase("available")) {
+				agent.setValue("signed-out");
+			}
 		}
 	}
 	

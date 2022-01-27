@@ -36,6 +36,7 @@ public class OrderService {
 	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
 	Map<Integer, String> deliveryAgents = new TreeMap<>();
 	Map<Integer, Order> orders = new TreeMap<>();
+	//List<Order> orders = new ArrayList<>();
 	
 	int globalOrderId;
 	
@@ -43,16 +44,6 @@ public class OrderService {
 		globalOrderId = 1000;
 	}
 	
-	public int getGlobalOrderId() {
-		return globalOrderId;
-	}
-
-
-	public void setGlobalOrderId(int globalOrderId) {
-		this.globalOrderId = globalOrderId;
-	}
-
-
 	@EventListener(ApplicationReadyEvent.class)
 	public void initializeData() throws IOException
 	{
@@ -231,42 +222,6 @@ public class OrderService {
 			
 	}
 	
-	public void orderDelivered(int orderId) {
-		Order ord = orders.get(orderId);
-		if(ord.getStatus().equalsIgnoreCase("assigned")) {
-			ord.setStatus("delivered");
-			orders.put(orderId, ord);
-			int newOrderId = isAnyOrderUnAssigned();
-			if(newOrderId!=-1)
-			{
-				deliveryAgents.put(ord.getAgentId(), "unavailable");
-				Order newOrd = orders.get(newOrderId);
-				newOrd.setStatus("assigned");
-				newOrd.setAgentId(ord.getAgentId());
-				orders.put(newOrderId, newOrd);
-			}
-			else
-			{
-				deliveryAgents.put(ord.getAgentId(), "available");
-			}
-		}
-	}
-	
-	public JSONObject getOrderDetails(int orderId) {	
-		JSONObject entity = new JSONObject(); 
-		entity.appendField("orderId", orderId);
-		entity.appendField("status", orders.get(orderId).getStatus());
-		entity.appendField("agentId", orders.get(orderId).getAgentId());		
-		return entity;
-	}
-	
-	public JSONObject getAgentDetails(int agentId) {	
-		JSONObject entity = new JSONObject(); 
-		entity.appendField("agentId", agentId);
-		entity.appendField("status", deliveryAgents.get(agentId));		
-		return entity;
-	}
-	
 	public int isAgentAvailable() {
 		for(Map.Entry<Integer, String> agent : deliveryAgents.entrySet() ) {
 			if(agent.getValue().equalsIgnoreCase("available")) {
@@ -288,10 +243,13 @@ public class OrderService {
 	}
 	
 	public void clearData() throws IOException {
-		orders.clear();
-		for(Map.Entry<Integer, String> agent : deliveryAgents.entrySet() ) {
-			agent.setValue("signed-out");
-		}
+		restaurants.clear();
+		deliveryAgents.clear();
+		
+		initializeData();
+		
+		System.out.println(restaurants.size());
+		System.out.println(deliveryAgents.size());
 	}
 	
 }

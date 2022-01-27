@@ -98,8 +98,8 @@ public class DeliveryController {
 	@ResponseBody
 	public ResponseEntity<Object> getAgentInfo(@PathVariable("num") int num) {
 		
-		JSONObject entity = orderService.getAgentDetails(num);
-		return new ResponseEntity<Object>(entity, HttpStatus.OK);
+		System.out.println(num);
+		return ResponseEntity.status(HttpStatus.OK).body("Order Info Code 200");
 	}
 	
 }

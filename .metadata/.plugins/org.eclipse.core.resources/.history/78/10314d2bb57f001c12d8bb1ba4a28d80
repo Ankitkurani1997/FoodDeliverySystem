@@ -17,6 +17,8 @@ public class DeliveryAgent {
 		this.agentId = agentId;
 	}
 	
+	
+	
 	public String getStatus() {
 		return status;
 	}

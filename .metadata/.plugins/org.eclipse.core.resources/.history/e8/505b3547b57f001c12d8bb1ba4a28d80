@@ -13,13 +13,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.iisc.pods.pojo.DeliveryAgent;
 import com.iisc.pods.pojo.Order;
 import com.iisc.pods.service.OrderService;
+import com.iisc.pods.service.Inventory;
 
 import net.minidev.json.JSONObject;
 
 @RestController
 public class DeliveryController {
+	
+	
+	
+	@Autowired
+	Inventory invObject;
 	
 	@Autowired
 	OrderService orderService;

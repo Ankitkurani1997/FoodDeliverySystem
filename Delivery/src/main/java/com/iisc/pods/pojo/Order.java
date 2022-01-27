@@ -1,10 +1,21 @@
 package com.iisc.pods.pojo;
 
 public class Order {
+	
+	public Order(){
+		orderId = 0;
+		status = null;
+		agentId = -1;
+	}
+	
 	int custId;
 	int restId;
 	int itemId;
 	int qty;
+	int orderId;
+	String status;
+	int agentId;
+	
 	public int getCustId() {
 		return custId;
 	}
@@ -28,6 +39,25 @@ public class Order {
 	}
 	public void setQty(int qty) {
 		this.qty = qty;
+	}
+	
+	public int getOrderId() {
+		return orderId;
+	}
+	public void setOrderId(int orderId) {
+		this.orderId = orderId;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public int getAgentId() {
+		return agentId;
+	}
+	public void setAgentId(int agentId) {
+		this.agentId = agentId;
 	}
 	@Override
 	public String toString() {

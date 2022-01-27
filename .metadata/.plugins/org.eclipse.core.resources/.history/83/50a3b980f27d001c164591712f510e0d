@@ -1,0 +1,36 @@
+package com.iisc.pods.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iisc.pods.pojo.DeliveryAgent;
+import com.iisc.pods.pojo.Order;
+
+import net.minidev.json.JSONObject;
+
+@RestController
+public class DeliveryController {
+	
+	@PostMapping("/requestOrder")
+	@ResponseBody
+	public ResponseEntity<Object> placeNewOrder(@RequestBody Order ord) {
+		
+		System.out.println(ord.toString());
+		JSONObject entity = new JSONObject();
+		entity.appendField("orderId", 1000);
+		return new ResponseEntity<Object>(entity, HttpStatus.OK);
+	}
+	
+	@PostMapping("/agentSignIn")
+	@ResponseBody
+	public ResponseEntity<Object> agentSign(@RequestBody DeliveryAgent agentId) {
+		
+		System.out.println(agentId);
+		return new ResponseEntity<Object>(HttpStatus.OK);
+	}
+	
+}

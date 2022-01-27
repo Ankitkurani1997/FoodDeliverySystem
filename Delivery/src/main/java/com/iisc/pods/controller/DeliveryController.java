@@ -1,5 +1,6 @@
 package com.iisc.pods.controller;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.iisc.pods.pojo.DeliveryAgent;
 import com.iisc.pods.pojo.Order;
+import com.iisc.pods.service.InitializeService;
 import com.iisc.pods.service.Inventory;
 
 import net.minidev.json.JSONObject;
@@ -26,18 +28,15 @@ public class DeliveryController {
 	@Autowired
 	Inventory invObject;
 	
+	@Autowired
+	InitializeService initializeService;
+	
 	@PostMapping("/reInitialize")
 	@ResponseBody
-	public ResponseEntity<String> initializeRecords() {
+	public ResponseEntity<String> initializeRecords() throws IOException {
 		
-		if(invObject.initializeData())
-		{
-			return ResponseEntity.status(HttpStatus.CREATED).body(null);
-		}
-		else
-		{
-			return ResponseEntity.status(HttpStatus.CREATED).body(null);
-		}
+		initializeService.clearData();
+		return ResponseEntity.status(HttpStatus.CREATED).body(null);
 	}
 	
 	@PostMapping("/requestOrder")
@@ -47,14 +46,14 @@ public class DeliveryController {
 		System.out.println(ord.toString());
 		JSONObject entity = new JSONObject();
 		entity.appendField("orderId", 1000);
-		return new ResponseEntity<Object>(entity, HttpStatus.OK);
+		return new ResponseEntity<Object>(entity, HttpStatus.CREATED);
 	}
 	
 	@PostMapping("/agentSignIn")
 	@ResponseBody
 	public ResponseEntity<String> agentSignIn(@RequestBody DeliveryAgent agentId) {
 		
-		System.out.println(agentId.getAgentId());
+		System.out.println(agentId.getAgentId());	
 		return ResponseEntity.status(HttpStatus.CREATED).body("Code 201");
 	}
 	
@@ -80,7 +79,7 @@ public class DeliveryController {
 	public ResponseEntity<Object> getOrderInfo(@PathVariable("num") int num) {
 		
 		System.out.println(num);
-		return ResponseEntity.status(HttpStatus.CREATED).body("Order Info Code 200");
+		return ResponseEntity.status(HttpStatus.OK).body("Order Info Code 200");
 	}
 	
 	@GetMapping("/agent/{num}")
@@ -88,7 +87,7 @@ public class DeliveryController {
 	public ResponseEntity<Object> getAgentInfo(@PathVariable("num") int num) {
 		
 		System.out.println(num);
-		return ResponseEntity.status(HttpStatus.CREATED).body("Order Info Code 200");
+		return ResponseEntity.status(HttpStatus.OK).body("Order Info Code 200");
 	}
 	
 }

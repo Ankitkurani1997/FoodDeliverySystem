@@ -2,40 +2,36 @@ package com.iisc.pods.service;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import com.iisc.pods.pojo.Item;
 
 @Service
-public class InitializeService {//implements ApplicationRunner{
+public class InitializeService {
 	
-	HashMap<Integer, Pair<Integer, List<Item>>> restaurants = new HashMap<>(); 
+	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
+	HashMap<Integer, String> deliveryAgents = new HashMap<>();
+	List<Integer> listOfCustomers = new ArrayList<>();
 	
 	@EventListener(ApplicationReadyEvent.class)
 	public void initializeData() throws IOException
 	{
-		System.out.println("***************************************Hello");
 		File file = new File("initialData.txt");
 		FileReader fileReader = new FileReader(file);
 		try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
 			String pattern = "****";
 			String line;
 			int counter = 0;
-			int restId = 0, items = 0;
+			int restId = 0, noOfitems = 0;
 			while((line = bufferedReader.readLine())!=null) {
-				//System.out.println(line);
 				line = line.strip();
 				if(line.equalsIgnoreCase(pattern)) {
 					counter++;
@@ -48,28 +44,27 @@ public class InitializeService {//implements ApplicationRunner{
 						if(str.length == 2)
 						{
 							restId = Integer.parseInt(str[0]);
-							items = Integer.parseInt(str[1]);
-							System.out.println(restId + " " + items);
+							noOfitems = Integer.parseInt(str[1]);
+							System.out.println(restId + " " + noOfitems);
 						}
 						else
 						{
 							int itemId = Integer.parseInt(str[0]), price = Integer.parseInt(str[1]), 
 									qty = Integer.parseInt(str[2]);
-							if(!addRestaurant(restId, items, itemId, price, qty))
-							{
-								System.out.println("Not able to add items for restaurant id: " + restId);
-							}
+							addRestaurant(restId, noOfitems, itemId, price, qty);
 							System.out.println("item: " + itemId  + " price " + price + " qty " + qty);
 						}
 					}
 					else if(counter == 1)
 					{
 						int agentId = Integer.parseInt(line);
+						addAgents(agentId, "available");
 						System.out.println("agenetId is " + agentId);
 					}
 					else if(counter == 2)
 					{
 						int custId = Integer.parseInt(line);
+						listOfCustomers.add(custId);
 						System.out.println("custId is " + custId);
 					}
 					else if(counter == 3)
@@ -80,23 +75,46 @@ public class InitializeService {//implements ApplicationRunner{
 				}
 			}
 		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 	}
 	
-	public boolean addRestaurant(int restId, int items, int itemId, int price, int qty)
+	public void addRestaurant(int restId, int noOfitems, int itemId, int price, int qty)
 	{
-		Pair<Integer, List<Item> > p;
-		//restaurants.put(restId, pai)
-		return true;
+		Item item  = new Item();
+		item.setItemId(itemId);
+		item.setPrice(price);
+		item.setQty(qty);
+		if(restaurants.containsKey(restId))
+		{
+			List<Item> lst = restaurants.get(restId);
+			lst.add(item);
+			restaurants.put(restId, lst);
+		}
+		else
+		{
+			List<Item> lst = new ArrayList<>();
+			lst.add(item);
+			restaurants.put(restId, lst);
+		}
 	}
 	
-	/*@Override
-	public void run(ApplicationArguments args) throws Exception {
-		// TODO Auto-generated method stub
-		System.out.println("ok dokie");
-	}*/
+	public void addAgents(int agenId, String status)
+	{
+		deliveryAgents.put(agenId, status);
+	}
+	
+	public void clearData() throws IOException {
+		restaurants.clear();
+		deliveryAgents.clear();
+		listOfCustomers.clear();
+		
+		initializeData();
+		
+		System.out.println(restaurants.size());
+		System.out.println(deliveryAgents.size());
+		System.out.println(listOfCustomers.size());
+	}
 	
 }

@@ -1,0 +1,20 @@
+package com.iisc.pods.models;
+
+public class DeliveryAgent {
+	
+	int deliveryAgenetId;
+
+	public int getDeliveryAgenetId() {
+		return deliveryAgenetId;
+	}
+
+	public void setDeliveryAgenetId(int deliveryAgenetId) {
+		this.deliveryAgenetId = deliveryAgenetId;
+	}
+
+	@Override
+	public String toString() {
+		return "DeliveryAgent [deliveryAgenetId=" + deliveryAgenetId + "]";
+	}
+	
+}

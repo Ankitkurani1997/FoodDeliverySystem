@@ -6,7 +6,7 @@ public class Restaurant {
 
 	int restId;
 	
-	List<Item> inventories;
+	List<Item> items;
 
 	public int getRestId() {
 		return restId;
@@ -16,18 +16,20 @@ public class Restaurant {
 		this.restId = restId;
 	}
 
-	public List<Item> getInventories() {
-		return inventories;
+	public List<Item> getItems() {
+		return items;
 	}
 
-	public void setInventories(List<Item> inventories) {
-		this.inventories = inventories;
+	public void setItems(List<Item> items) {
+		this.items = items;
 	}
 
 	@Override
 	public String toString() {
-		return "Restaurant [restId=" + restId + ", inventories=" + inventories + "]";
+		return "Restaurant [restId=" + restId + ", items=" + items + "]";
 	}
+
+	
 	
 	
 }

@@ -1,0 +1,18 @@
+101 2 //Restaurant_Id number_of_item_available
+1 180 10 //itemId price initial_quantity
+2 230 20
+102 3 //Restaurant_Id
+number_of_item_available
+1 50 10 //itemId price initial_quantity
+3 60 20
+4 45 15
+****
+201 // DeliveryAgent_Id
+202
+203
+****
+301 //Customer_Id
+302
+303
+****
+2000 //Initial wallet balance of all customers

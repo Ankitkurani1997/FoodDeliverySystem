@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.iisc.pods.pojo.DeliveryAgent;
 import com.iisc.pods.pojo.Order;
-import com.iisc.pods.service.InitializeService;
+import com.iisc.pods.service.OrderService;
 import com.iisc.pods.service.Inventory;
 
 import net.minidev.json.JSONObject;
@@ -29,13 +29,13 @@ public class DeliveryController {
 	Inventory invObject;
 	
 	@Autowired
-	InitializeService initializeService;
+	OrderService orderService;
 	
 	@PostMapping("/reInitialize")
 	@ResponseBody
 	public ResponseEntity<String> initializeRecords() throws IOException {
 		
-		initializeService.clearData();
+		orderService.clearData();
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);
 	}
 	
@@ -43,10 +43,19 @@ public class DeliveryController {
 	@ResponseBody
 	public ResponseEntity<Object> placeNewOrder(@RequestBody Order ord) {
 		
-		System.out.println(ord.toString());
-		JSONObject entity = new JSONObject();
-		entity.appendField("orderId", 1000);
-		return new ResponseEntity<Object>(entity, HttpStatus.CREATED);
+		int orderId = orderService.requestOrder(ord); 
+		if(orderId != -1)
+		{
+			JSONObject entity = new JSONObject();
+			entity.appendField("orderId", orderId);
+			return new ResponseEntity<Object>(entity, HttpStatus.CREATED);
+		}
+		else
+		{
+			JSONObject entity = new JSONObject();
+			return new ResponseEntity<Object>(entity, HttpStatus.GONE);
+		}
+		
 	}
 	
 	@PostMapping("/agentSignIn")

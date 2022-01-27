@@ -2,12 +2,6 @@ package com.iisc.pods.pojo;
 
 public class Order {
 	
-	public Order(){
-		orderId = 0;
-		status = null;
-		agentId = -1;
-	}
-	
 	int custId;
 	int restId;
 	int itemId;
@@ -15,6 +9,12 @@ public class Order {
 	int orderId;
 	String status;
 	int agentId;
+	
+	public Order(){
+		orderId = -1;
+		status = null;
+		agentId = -1;
+	}
 	
 	public int getCustId() {
 		return custId;

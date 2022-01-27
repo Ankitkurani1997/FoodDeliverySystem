@@ -62,7 +62,7 @@ public class OrderService {
 			String pattern = "****";
 			String line;
 			int counter = 0;
-			int restId = 0, noOfitems = 0;
+			int restId = 0;
 			while((line = bufferedReader.readLine())!=null) {
 				line = line.strip();
 				if(line.equalsIgnoreCase(pattern)) {
@@ -76,22 +76,17 @@ public class OrderService {
 						if(str.length == 2)
 						{
 							restId = Integer.parseInt(str[0]);
-							noOfitems = Integer.parseInt(str[1]);
-							System.out.println(restId + " " + noOfitems);
 						}
 						else
 						{
-							int itemId = Integer.parseInt(str[0]), price = Integer.parseInt(str[1]), 
-									qty = Integer.parseInt(str[2]);
-							addRestaurant(restId, noOfitems, itemId, price, qty);
-							System.out.println("item: " + itemId  + " price " + price + " qty " + qty);
+							int itemId = Integer.parseInt(str[0]), price = Integer.parseInt(str[1]);
+							addRestaurant(restId, itemId, price);
 						}
 					}
 					else if(counter == 1)
 					{
 						int agentId = Integer.parseInt(line);
 						deliveryAgents.put(agentId, "available");
-						System.out.println("agenetId is " + agentId);
 					}
 				}
 			}
@@ -101,7 +96,7 @@ public class OrderService {
 		
 	}
 	
-	public void addRestaurant(int restId, int noOfitems, int itemId, int price, int qty)
+	public void addRestaurant(int restId, int itemId, int price)
 	{
 		Item item  = new Item();
 		item.setItemId(itemId);
@@ -204,7 +199,7 @@ public class OrderService {
 	public void agentSignIn(int agentId) {
 		
 		String status = deliveryAgents.get(agentId);
-		if(!status.equalsIgnoreCase("signed-in"))
+		if(!status.equalsIgnoreCase("available"))
 		{
 			int orderId = isAnyOrderUnAssigned();
 			if(orderId!=-1) {

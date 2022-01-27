@@ -52,15 +52,14 @@ public class DeliveryController {
 		}
 		else
 		{
-			JSONObject entity = new JSONObject();
-			return new ResponseEntity<Object>(entity, HttpStatus.GONE);
+			return ResponseEntity.status(HttpStatus.GONE).body(null);
 		}
 		
 	}
 	
 	@PostMapping("/agentSignIn")
 	@ResponseBody
-	public ResponseEntity<String> agentSignIn(@RequestBody HashMap<String,Integer> requestData) {
+	public ResponseEntity<Object> agentSignIn(@RequestBody HashMap<String,Integer> requestData) {
 		
 		orderService.agentSignIn(requestData.get("agentId"));	
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);

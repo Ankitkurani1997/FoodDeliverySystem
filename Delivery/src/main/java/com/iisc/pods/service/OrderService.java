@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.iisc.pods.pojo.Item;
@@ -31,7 +32,7 @@ public class OrderService {
 	
 	private final String URI_WALLET_DEDUCTBALANCE = "http://10.217.64.43:8080/deductBalance";
 	private final String URI_WALLET_ADDBALANCE = "http://10.217.64.43:8080/addBalance";
-	private final String URI_RESTAURANT = "http://localhost:8080/acceptOrder";
+	private final String URI_RESTAURANT = "http://10.217.64.43:8082/acceptOrder";
 	
 	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
 	Map<Integer, String> deliveryAgents = new TreeMap<>();
@@ -52,6 +53,13 @@ public class OrderService {
 		this.globalOrderId = globalOrderId;
 	}
 
+	public Map<Integer, Order> getOrders() {
+		return orders;
+	}
+
+	public void setOrders(Map<Integer, Order> orders) {
+		this.orders = orders;
+	}
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void initializeData() throws IOException
@@ -135,66 +143,76 @@ public class OrderService {
 			return -1;
 		}
 		int totalBill = computeTotalBill(ord.getRestId(), ord.getItemId(), ord.getQty());
-		RestTemplate restTemplate = new RestTemplate();
 		
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
+		int flag = 0;
+		JSONObject entityWallet = null;
+		RestTemplate restTemplate = null;
+		ResponseEntity<Object> responseWallet = null;
+		HttpEntity<Object> httpEntityWallet = null;
+		HttpEntity<String> httpEntityRestaurant = null;
+		HttpStatus responseRestaurant = null;
+		try {
 		
-		JSONObject entityWallet = new JSONObject();
-		entityWallet.appendField("custId", ord.getCustId());
-		entityWallet.appendField("amount", totalBill);
-		
-		HttpEntity<Object> httpEntityWallet = new HttpEntity<Object>(entityWallet.toString(), headers);
-		
-		ResponseEntity<Object> responseWalltet = restTemplate.exchange(URI_WALLET_DEDUCTBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
-		
-		if(responseWalltet.getStatusCode() == HttpStatus.GONE)
-		{
-			return -1;
-		}
-		else
-		{
+			restTemplate = new RestTemplate();
+			
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			
+			entityWallet = new JSONObject();
+			entityWallet.appendField("custId", ord.getCustId());
+			entityWallet.appendField("amount", totalBill);
+			
+			httpEntityWallet = new HttpEntity<Object>(entityWallet.toString(), headers);
+			responseWallet = restTemplate.exchange(URI_WALLET_DEDUCTBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
+			flag = 1;
+			
 			JSONObject entityRestaurant = new JSONObject();
 			entityRestaurant.appendField("restId", ord.getRestId());
 			entityRestaurant.appendField("itemId", ord.getItemId());
 			entityRestaurant.appendField("qty", ord.getQty());
 			
-			HttpEntity<Object> httpEntityRestaurant = new HttpEntity<Object>(entityWallet.toString(), headers);
-			ResponseEntity<Object> responseRestaurant = restTemplate.exchange(URI_RESTAURANT, HttpMethod.POST, httpEntityRestaurant, Object.class);
+			httpEntityRestaurant = new HttpEntity<String>(entityRestaurant.toString(), headers);
+			responseRestaurant = restTemplate.exchange(URI_RESTAURANT, HttpMethod.POST, httpEntityRestaurant, String.class).getStatusCode();
 			
-			if(responseRestaurant.getStatusCode() != HttpStatus.CREATED)
-			{
-				responseWalltet = restTemplate.exchange(URI_WALLET_ADDBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
-				if(responseWalltet.getStatusCode() == HttpStatus.GONE)
-				{
-					return -1;
+			int id = globalOrderId;
+			ord.setOrderId(id);
+			globalOrderId++;
+			
+				if(responseRestaurant == HttpStatus.CREATED) {
+					int agentAssigned = isAgentAvailable();
+			
+					if(agentAssigned!=-1)
+					{
+						ord.setStatus("assigned");
+						ord.setAgentId(agentAssigned);
+					}
+					else
+					{
+						ord.setStatus("unassigned");
+					}
+					orders.put(id ,ord);
+					return id;
 				}
 				else
 				{
-					System.out.println("Restored Balance");
 					return -1;
 				}
-			}
-			else
-			{
-				int id = globalOrderId;
-				ord.setOrderId(id);
-				globalOrderId++;
-				int agentAssigned = isAgentAvailable();
-				if(agentAssigned!=-1)
-				{
-					ord.setStatus("assigned");
-					ord.setAgentId(agentAssigned);
-				}
-				else
-				{
-					ord.setStatus("unassigned");
-				}
-				orders.put(id ,ord);
-				System.out.println("Balance Reduced");
-				return id;
-			}
 		}
+		catch (HttpClientErrorException e) {
+			if(flag == 0) {
+				return -1;
+			}
+			else {
+				try {
+					responseWallet = restTemplate.exchange(URI_WALLET_ADDBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
+					System.out.println("Balance Restored");
+					return -1;
+				}
+				catch(HttpClientErrorException exception) {
+					return -1;
+				}
+			}
+	  }
 	}
 	
 	public void agentSignIn(int agentId) {
@@ -285,6 +303,7 @@ public class OrderService {
 	
 	public void clearData() throws IOException {
 		orders.clear();
+		globalOrderId = 1000;
 		for(Map.Entry<Integer, String> agent : deliveryAgents.entrySet() ) {
 			agent.setValue("signed-out");
 		}

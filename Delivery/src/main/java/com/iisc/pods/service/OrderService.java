@@ -29,8 +29,8 @@ import net.minidev.json.JSONObject;
 @Service
 public class OrderService {
 	
-	private final String URI_WALLET_DEDUCTBALANCE = "http://localhost:8080/deductBalance";
-	private final String URI_WALLET_ADDBALANCE = "http://localhost:8080/addBalance";
+	private final String URI_WALLET_DEDUCTBALANCE = "http://10.217.64.43:8080/deductBalance";
+	private final String URI_WALLET_ADDBALANCE = "http://10.217.64.43:8080/addBalance";
 	private final String URI_RESTAURANT = "http://localhost:8080/acceptOrder";
 	
 	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
@@ -131,9 +131,10 @@ public class OrderService {
 	}
 	
 	public int requestOrder(Order ord) {
-		
+		if(!restaurants.containsKey(ord.getRestId())) {
+			return -1;
+		}
 		int totalBill = computeTotalBill(ord.getRestId(), ord.getItemId(), ord.getQty());
-		
 		RestTemplate restTemplate = new RestTemplate();
 		
 		HttpHeaders headers = new HttpHeaders();
@@ -143,9 +144,9 @@ public class OrderService {
 		entityWallet.appendField("custId", ord.getCustId());
 		entityWallet.appendField("amount", totalBill);
 		
-		HttpEntity<String> httpEntityWallet = new HttpEntity<String>(entityWallet.toString(), headers);
+		HttpEntity<Object> httpEntityWallet = new HttpEntity<Object>(entityWallet.toString(), headers);
 		
-		ResponseEntity<String> responseWalltet = restTemplate.exchange(URI_WALLET_DEDUCTBALANCE, HttpMethod.POST, httpEntityWallet, String.class);
+		ResponseEntity<Object> responseWalltet = restTemplate.exchange(URI_WALLET_DEDUCTBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
 		
 		if(responseWalltet.getStatusCode() == HttpStatus.GONE)
 		{
@@ -158,12 +159,12 @@ public class OrderService {
 			entityRestaurant.appendField("itemId", ord.getItemId());
 			entityRestaurant.appendField("qty", ord.getQty());
 			
-			HttpEntity<String> httpEntityRestaurant = new HttpEntity<String>(entityWallet.toString(), headers);
-			ResponseEntity<String> responseRestaurant = restTemplate.exchange(URI_RESTAURANT, HttpMethod.POST, httpEntityRestaurant, String.class);
+			HttpEntity<Object> httpEntityRestaurant = new HttpEntity<Object>(entityWallet.toString(), headers);
+			ResponseEntity<Object> responseRestaurant = restTemplate.exchange(URI_RESTAURANT, HttpMethod.POST, httpEntityRestaurant, Object.class);
 			
 			if(responseRestaurant.getStatusCode() != HttpStatus.CREATED)
 			{
-				responseWalltet = restTemplate.exchange(URI_WALLET_ADDBALANCE, HttpMethod.POST, httpEntityWallet, String.class);
+				responseWalltet = restTemplate.exchange(URI_WALLET_ADDBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
 				if(responseWalltet.getStatusCode() == HttpStatus.GONE)
 				{
 					return -1;

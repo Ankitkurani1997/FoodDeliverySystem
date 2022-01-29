@@ -71,7 +71,7 @@ public class DeliveryController {
 	public ResponseEntity<String> orderDelivered(@RequestBody HashMap<String, Integer> requestData ) {
 		
 		Integer orderId = requestData.get("orderId");
-		if(!orderService.getOrders().containsKey(orderId)) {
+		if(orderService.getOrders().containsKey(orderId)) {
 			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
 		

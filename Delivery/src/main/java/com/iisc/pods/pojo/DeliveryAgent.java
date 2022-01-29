@@ -6,7 +6,7 @@ public class DeliveryAgent {
 	String status;
 	
 	public DeliveryAgent() {
-		status = "available";
+		status = "signed-out";
 	}
 
 	public int getAgentId() {

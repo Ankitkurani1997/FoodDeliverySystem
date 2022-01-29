@@ -89,7 +89,9 @@ public class DeliveryController {
 	@GetMapping("/agent/{num}")
 	@ResponseBody
 	public ResponseEntity<Object> getAgentInfo(@PathVariable("num") int num) {
-		
+		if(!orderService.getDeliveryAgents().containsKey(num)) {
+			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 		JSONObject entity = orderService.getAgentDetails(num);
 		return new ResponseEntity<Object>(entity, HttpStatus.OK);
 	}

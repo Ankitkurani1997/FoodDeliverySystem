@@ -61,6 +61,14 @@ public class OrderService {
 		this.orders = orders;
 	}
 
+	public Map<Integer, String> getDeliveryAgents() {
+		return deliveryAgents;
+	}
+
+	public void setDeliveryAgents(Map<Integer, String> deliveryAgents) {
+		this.deliveryAgents = deliveryAgents;
+	}
+
 	@EventListener(ApplicationReadyEvent.class)
 	public void initializeData() throws IOException
 	{
@@ -94,7 +102,7 @@ public class OrderService {
 					else if(counter == 1)
 					{
 						int agentId = Integer.parseInt(line);
-						deliveryAgents.put(agentId, "available");
+						deliveryAgents.put(agentId, "signed-out");
 					}
 				}
 			}

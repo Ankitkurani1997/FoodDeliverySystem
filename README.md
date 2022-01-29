@@ -35,3 +35,93 @@ Restaurants are assumed to be always open and serving.
 For any end-point below, if it is not mentioned who is to invoke it, then it is intended
 to be invoked by a human (delivery agent, customer, restaurant manager, etc). In our
 setting, a test-script will send requests to these end-points on behalf of humans.
+
+End-Points in Restaurant Service
+1. POST /acceptOrder
+with JSON payload of the form {“restId”: num, “itemId”: x, “qty”: y}
+This end-point will be invoked by the Delivery service.
+If the restaurant with ID num has at least y quantities of itemId x in its current
+inventory
+then
+reduce the inventory of item x in restaurant num by yreturn HTTP status code 201 (created)
+else
+return HTTP status code 410 (gone)
+2. POST /refillItem
+with JSON payload of the form {“restId”: num, “itemId”: x, “qty”: y}
+Increases the inventory of itemId x in restaurant num by y (provided num supplies x
+as per /initialData.txt). Should return status code 201 unconditionally.
+3. POST /reInitialize
+Set inventory of all items in all restaurants as given in the /initialData.txt file.
+Return HTTP status code 201.
+End-points in Delivery Service
+Keeps track of the status of each order placed so far. The status of any order can be either
+unassigned, assigned, or delivered (unassigned means not yet given to a delivery agent).
+For any assigned or delivered order, the service also records the agentId to which this order
+is assigned. The service also keeps track of the current status of each delivery agent
+(signed-out, unavailable, available). Maintains information about the price of each itemId in
+each restaurant (this is constant information).
+1. POST /requestOrder
+with JSON payload of the form {“custId”: num, “restId”: x, “itemId”: y, “qty”: z}
+This is the main end-point used by the customer to place an order. It first
+computes the total billing amount for this order (as it maintains the price of
+each itemId in each restaurant). It tries to deduct the amount from the custId
+num’s wallet. If deduction does not succeed, return HTTP status code 410. If
+the deduction succeeds, invoke the Restaurant Service’s acceptOrder
+end-point, passing to it x, y, z. If that returns 410, restore the wallet balance
+and return HTTP status code 410. Otherwise, first generate a fresh orderId w
+(let orderIds start from 1000 and let them be incremented by one each time).
+Initialize the status of this fresh order w as unassigned. Then see if any
+Delivery Agent is available right now. If yes, assign an agentId to this order w
+from among the available agentIds, update the status of the orderId w to
+assigned, mark the assigned agentId as unavailable, and record that w is
+assigned to this agentId. (If many agents are available, choose the lowest
+numbered agentId among them.) Then, whether or not the orderId was
+assigned an agent, return HTTP status code 201 and return response body
+{“orderId”: w}.2. POST /agentSignIn
+with JSON payload of the form {“agentId”: num}, where num is an agentId
+If num is already in available or unavailable state, do nothing. Otherwise, If any
+orderIds are currently in unassigned state, find the least numbered orderId y that is
+unassigned, mark num as unavailable, mark the status of y as assigned, and record
+that y is assigned to num. Otherwise, mark the status of num as available. In all
+cases return HTTP status code 201.
+3. POST /agentSignOut
+with JSON payload of the form {“agentId”: num}, where num is an agentId
+If num is already signed-out or is unavailable, do nothing, else mark num as being in
+signed-out state. In both cases, return HTTP status code 201.
+4. POST /orderDelivered
+with JSON payload of the form {"orderId": num}, where num is an orderId
+Ignore the request if num is not an orderId in assigned state. Otherwise, mark the
+status of orderId num as delivered, and mark the status of the agentId who was
+assigned this order as available. Let x be this agendId. If any orderIds are currently
+in unassigned state, find the least numbered orderId y that is unassigned, mark x as
+unavailable again, mark y as assigned, and record that y is assigned to x. In all cases
+return 201.
+5. GET /order/num
+where num is an orderId.
+If num is a non-existent orderId return HTTP status code 404. Otherwise return
+status code 200 along with response JSON of the form {"orderId": num, "status": x,
+“agentId”: y}, where x is unassigned, or assigned, or delivered. y will be the agentId
+that is assigned the order num in case num is in assigned or delivered state, else y
+will be -1.
+6. GET /agent/num
+where num is an agentId
+Return status code 200 and response JSON of the form {"agendId": num, "status": y},
+where y is signed-out, available, or unavailable.
+7. POST /reInitializeDelete all orders from the records (no matter what their status is), and mark status of
+each agent as signed-out. Return HTTP status code 201.
+End-points in Wallet service
+1. POST /addBalance
+with JSON payload of the form {"custId": num, "amount": z}
+To be invoked by Delivery Service.
+Increase the balance of custId num by z, and return HTTP status code 201.
+2. POST /deductBalance
+with JSON payload of the form {"custId": num, "amount": z}
+To be invoked by Delivery Service.
+If current balance of custId num is less than z, return HTTP status code 410, else
+reduce custId num's balance by z and return HTTP status code 201.
+3. GET /balance/num
+where num is a custId. Return HTTP status code 200, and response JSON of the
+form {“custId”: num, “balance”: z}, where z is the current balance of custId num.
+4. POST /reInitialize
+Set balance of all customers to the initial value as given in the /initialData.txt file.
+Return HTTP status code 201.

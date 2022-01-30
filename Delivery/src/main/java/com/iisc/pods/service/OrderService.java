@@ -220,7 +220,14 @@ public class OrderService {
 					return -1;
 				}
 			}
-	  }
+		}
+		catch (Exception e) {
+			if(flag==0)
+				System.out.println("Wallet Service is temporarily down");
+			else
+				System.out.println("Restaurant Service is temporarily down");
+			return -1;
+		}
 	}
 	
 	public void agentSignIn(int agentId) {

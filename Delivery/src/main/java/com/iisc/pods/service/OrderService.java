@@ -30,9 +30,9 @@ import net.minidev.json.JSONObject;
 @Service
 public class OrderService {
 	
-	private final String URI_WALLET_DEDUCTBALANCE = "http://10.217.64.43:8080/deductBalance";
-	private final String URI_WALLET_ADDBALANCE = "http://10.217.64.43:8080/addBalance";
-	private final String URI_RESTAURANT = "http://10.217.64.43:8082/acceptOrder";
+	private final String URI_WALLET_DEDUCTBALANCE = "http://10.217.64.43:8082/deductBalance";
+	private final String URI_WALLET_ADDBALANCE = "http://10.217.64.43:8082/addBalance";
+	private final String URI_RESTAURANT = "http://10.217.64.43:8080/acceptOrder";
 	
 	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
 	Map<Integer, String> deliveryAgents = new TreeMap<>();
@@ -146,8 +146,25 @@ public class OrderService {
 		return total;
 	}
 	
+	public int isDatavalid(int restId, int itemId) {
+		if(!restaurants.containsKey(restId)) {
+			System.out.println("restId not present");
+			return 0;
+		}
+		List<Item> items = restaurants.get(restId);
+		for(int i=0;i<items.size();i++)
+		{
+			if(items.get(i).getItemId() == itemId)
+			{
+				return 1;
+			}
+		}
+		System.out.println("itemId is not present");
+		return 0;
+	}
+	
 	public int requestOrder(Order ord) {
-		if(!restaurants.containsKey(ord.getRestId())) {
+		if(isDatavalid(ord.getRestId(), ord.getItemId()) == 0) {
 			return -1;
 		}
 		int totalBill = computeTotalBill(ord.getRestId(), ord.getItemId(), ord.getQty());
@@ -223,9 +240,9 @@ public class OrderService {
 		}
 		catch (Exception e) {
 			if(flag==0)
-				System.out.println("Wallet Service is temporarily down");
+				System.out.println("Issue in deducting balance from wallet");
 			else
-				System.out.println("Restaurant Service is temporarily down");
+				System.out.println("Issue in placing order");
 			return -1;
 		}
 	}

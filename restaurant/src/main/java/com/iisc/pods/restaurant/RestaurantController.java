@@ -22,7 +22,7 @@ public class RestaurantController {
 	InventoryService inventoryService;
 	
 	@PostMapping("/acceptOrder")
-	public ResponseEntity<String> newOrder(@RequestBody HashMap<String, Integer> requestData) {
+	public ResponseEntity<Object> newOrder(@RequestBody HashMap<String, Integer> requestData) {
 		
 		int status = inventoryService.acceptOrder(requestData.get("restId"), requestData.get("itemId"), requestData.get("qty"));
 		if(status == 1)
@@ -35,7 +35,7 @@ public class RestaurantController {
 	}
 	
 	@PostMapping("/refillItem")
-	public ResponseEntity<String> addToInventory(@RequestBody HashMap<String, Integer> requestData) {
+	public ResponseEntity<Object> addToInventory(@RequestBody HashMap<String, Integer> requestData) {
 		
 		int status = inventoryService.refill(requestData.get("restId"), requestData.get("itemId"), requestData.get("qty"));
 		if(status == 1)
@@ -46,7 +46,7 @@ public class RestaurantController {
 	
 	
 	@PostMapping("/reInitialize")
-	public ResponseEntity<String> reInit() throws IOException {
+	public ResponseEntity<Object> reInit() throws IOException {
 		inventoryService.freshInitRestaurants();
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);
 	}
@@ -54,7 +54,7 @@ public class RestaurantController {
 	
 	
 	@GetMapping("/restInit")
-	public ResponseEntity<String> rest() {
+	public ResponseEntity<Object> rest() {
 		inventoryService.addRest();
 		return ResponseEntity.status(HttpStatus.OK).body(null);
 	}

@@ -23,7 +23,7 @@ public class WalletController {
 	TransactService transactService;
 	
 	@PostMapping("/addBalance")
-	public ResponseEntity<String> addMoney(@RequestBody HashMap<String, Integer> requestData) {
+	public ResponseEntity<Object> addMoney(@RequestBody HashMap<String, Integer> requestData) {
 		if(transactService.addBal(requestData.get("custId"), requestData.get("amount")))
 			return ResponseEntity.status(HttpStatus.CREATED).body(null);
 		else
@@ -31,7 +31,7 @@ public class WalletController {
 	}
 	
 	@PostMapping("/deductBalance")
-	public ResponseEntity<String> deductMoney(@RequestBody HashMap<String, Integer> requestData) {
+	public ResponseEntity<Object> deductMoney(@RequestBody HashMap<String, Integer> requestData) {
 		int status = transactService.deductBal(requestData.get("custId"), requestData.get("amount"));
 		if(status == 1) {
 			return ResponseEntity.status(HttpStatus.CREATED).body(null);
@@ -52,13 +52,13 @@ public class WalletController {
 	}
 	
 	@PostMapping("/reInitialize")
-	public ResponseEntity<String> reInit() throws IOException {
+	public ResponseEntity<Object> reInit() throws IOException {
 		transactService.freshInitWallet();
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);
 	}
 	
 	@GetMapping("/initCust")
-	public ResponseEntity<String> cust() {
+	public ResponseEntity<Object> cust() {
 		transactService.addCust();
 		return ResponseEntity.status(HttpStatus.OK).body(null);
 	}

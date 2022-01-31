@@ -1,7 +1,0 @@
-package com.iisc.pods.models;
-
-public class DeliveryAgent {
-	
-	int deliveryAgenetId;
-	
-}

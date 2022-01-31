@@ -230,7 +230,6 @@ public class OrderService {
 			else {
 				try {
 					responseWallet = restTemplate.exchange(URI_WALLET_ADDBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
-					System.out.println("Balance Restored");
 					return -1;
 				}
 				catch(HttpClientErrorException exception) {

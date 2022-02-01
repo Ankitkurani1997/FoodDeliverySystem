@@ -30,9 +30,9 @@ import net.minidev.json.JSONObject;
 @Service
 public class OrderService {
 	
-	private final String URI_WALLET_DEDUCTBALANCE = "http://10.217.64.43:8082/deductBalance";
-	private final String URI_WALLET_ADDBALANCE = "http://10.217.64.43:8082/addBalance";
-	private final String URI_RESTAURANT = "http://10.217.64.43:8080/acceptOrder";
+	private final String URI_WALLET_DEDUCTBALANCE = "http://localhost:8082/deductBalance";
+	private final String URI_WALLET_ADDBALANCE = "http://localhost:8082/addBalance";
+	private final String URI_RESTAURANT = "http://localhost:8080/acceptOrder";
 	
 	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
 	Map<Integer, String> deliveryAgents = new TreeMap<>();
@@ -176,6 +176,7 @@ public class OrderService {
 		HttpEntity<Object> httpEntityWallet = null;
 		HttpEntity<String> httpEntityRestaurant = null;
 		HttpStatus responseRestaurant = null;
+		
 		try {
 		
 			restTemplate = new RestTemplate();

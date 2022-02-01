@@ -53,7 +53,9 @@ public class DeliveryController {
 	@PostMapping("/agentSignIn")
 	@ResponseBody
 	public ResponseEntity<Object> agentSignIn(@RequestBody HashMap<String,Integer> requestData) {
-		
+		if(!orderService.getDeliveryAgents().containsKey(requestData.get("agentId"))) {
+			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 		orderService.agentSignIn(requestData.get("agentId"));	
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);
 	}

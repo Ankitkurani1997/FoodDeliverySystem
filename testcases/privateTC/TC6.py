@@ -1,7 +1,9 @@
 # Balance consistency check
-# Checks if the balance is consitent after placing
+# Checks if the balance is consistent after placing
 # multiple orders and also balance should not be
-# negative
+# negative.
+#Note :- initialData.txt which was provided initially is followed for the data, a new initialData.txt may not work as prices
+#         of item id might me different, If you are providing new initialData.txt make sure to change the price variable
 
 from http import HTTPStatus
 import requests
@@ -96,10 +98,12 @@ def test():
 	cust_id = res_body.get("custId")
 	laterBalance = res_body.get("balance")
 
+	price = 630
+
 	if(cust_id!=301 or laterBalance<0):
 		test_result = 'Fail'
 
-	if(initialBalance - laterBalance != 630):
+	if(initialBalance - laterBalance != price):
 		test_result = 'Fail'
 
 

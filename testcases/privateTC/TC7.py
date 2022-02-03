@@ -1,4 +1,3 @@
-# After order is delivered by an agent, sign the agent out
 # Checks if the agent is Signed out and also after signing 
 # out, the status of agent must be signed-out
 

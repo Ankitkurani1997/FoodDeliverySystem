@@ -30,9 +30,9 @@ import net.minidev.json.JSONObject;
 @Service
 public class OrderService {
 	
-	private final String URI_WALLET_DEDUCTBALANCE = "http://host.docker.internal:8082/deductBalance";
-	private final String URI_WALLET_ADDBALANCE = "http://host.docker.internal:8082/addBalance";
-	private final String URI_RESTAURANT = "http://host.docker.internal:8080/acceptOrder";
+	private final String URI_WALLET_DEDUCTBALANCE = "http://localhost:8082/deductBalance";
+	private final String URI_WALLET_ADDBALANCE = "http://localhost:8082/addBalance";
+	private final String URI_RESTAURANT = "http://localhost:8080/acceptOrder";
 	
 	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
 	Map<Integer, String> deliveryAgents = new TreeMap<>();

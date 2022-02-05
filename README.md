@@ -1,3 +1,13 @@
+Doker run command:-
+
+Delivery :- docker run --net="host" -v /{Path_to_initialData.txt_file}/initialData.txt:/initialData.txt delivery
+
+Restaurant :- docker run -p 8080:8080 -v /{Path_to_initialData.txt_file}/initialData.txt:/initialData.txt restaurant
+
+Wallet :- docker run -p 8082:8082 -v /{Path_to_initialData.txt_file}/initialData.txt:/initialData.txt wallet 
+
+Note :- delivery, restaurant and wallet are the docker image name
+
 The objective of this project is to develop a food delivery application (similar to Zomato,
 Swiggy). The application will be organized as a set of three microservices, each hosting a
 RESTful service. The high-level features of the application are as follows:

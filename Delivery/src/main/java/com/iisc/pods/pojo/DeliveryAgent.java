@@ -1,5 +1,12 @@
 package com.iisc.pods.pojo;
 
+
+/**
+ * @author ankit
+ * A Java class that corresponds to Delivery Agents. Each Agent has following information :
+ * 1. agentId : An unique ID assigned to every agent
+ * 2. status : Status of the agent
+ */
 public class DeliveryAgent {
 	
 	int agentId;

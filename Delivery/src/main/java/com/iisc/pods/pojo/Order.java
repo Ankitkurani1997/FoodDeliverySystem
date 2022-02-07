@@ -1,5 +1,17 @@
 package com.iisc.pods.pojo;
 
+/**
+ * 
+ * @author ankit
+ * A Java class that corresponds to orders placed. Each order has following information :
+ * 1. custId  : An customer ID assigned to every agent
+ * 2. restId  : Restaurant id
+ * 3. itemId  : Item id which customer ordered
+ * 4. qty     : Quantity ordered by customer
+ * 5. orderId : Order Id assigned to this order
+ * 6. status  : Status of Order
+ * 7. agentId : Agent which is assigned to deliver the order
+ */
 public class Order {
 	
 	int custId;

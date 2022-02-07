@@ -1,5 +1,12 @@
 package com.iisc.pods.pojo;
 
+
+/** 
+ * @author ankit
+ * A Java class that corresponds to List of Items in a restaurant. Each Item has following information :
+ * 1. itemId : An unique ID assigned to every item in restaurant
+ * 2. price : Price for the particular item Id mentioned above
+*/
 public class Item {
 	int itemId;
 	int price;

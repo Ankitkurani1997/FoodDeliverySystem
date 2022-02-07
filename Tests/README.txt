@@ -1,8 +1,7 @@
-The folder privateTC has all of the testcases that we developed.
-
 Follow the procedure below to run the tests.
 
+python3 <test_name>.py
 
-1. cd privateTC
+example :-
 
-2. python3 <test_name>.py
+python3 Private1-Project1Phase1.py

@@ -1,5 +1,7 @@
 # Restaurant Service
 
+Enter the respective directory of the Restaurant microservice
+
 ### Compile the project and generate the JAR file
 ./mvnw package
 
@@ -19,6 +21,8 @@ docker image rm restaurant-service
 
 # Delivery Service
 
+Enter the respective directory of the Delivery microservice
+
 ### Compile the project and generate the JAR file
 ./mvnw package
 
@@ -36,6 +40,8 @@ docker image rm delivery-service
 
 
 # Wallet Service
+
+Enter the respective directory of the Wallet microservice
 
 ### Compile the project and generate the JAR file
 ./mvnw package

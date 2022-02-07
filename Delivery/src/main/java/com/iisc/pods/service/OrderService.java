@@ -2,6 +2,7 @@ package com.iisc.pods.service;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,9 +80,11 @@ public class OrderService {
 	@EventListener(ApplicationReadyEvent.class)
 	public void initializeData() throws IOException
 	{
-		File file = new File("initialData.txt");
-		FileReader fileReader = new FileReader(file);
-		try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+		File file;
+		try {
+			file = new File("initialData.txt");
+			FileReader fileReader = new FileReader(file);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			String pattern = "****";
 			String line;
 			int counter = 0;
@@ -113,7 +116,13 @@ public class OrderService {
 					}
 				}
 			}
-		} catch (NumberFormatException e) {
+		bufferedReader.close();
+		fileReader.close();
+		}
+		catch(FileNotFoundException e) {
+			System.out.println("Initialialization file not found!");
+		}
+		catch (NumberFormatException e) {
 			e.printStackTrace();
 		}
 		

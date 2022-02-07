@@ -68,6 +68,14 @@ public class OrderService {
 		this.deliveryAgents = deliveryAgents;
 	}
 
+	
+	/**
+	 * 
+	 * initializeData function is invoked by the event-listner as soon as the delivery
+	 * application is launched. The Delivery application will initialize all its data also
+	 * from the initialData.txt file provided.
+	 * @throws IOException
+	 */
 	@EventListener(ApplicationReadyEvent.class)
 	public void initializeData() throws IOException
 	{
@@ -111,6 +119,15 @@ public class OrderService {
 		
 	}
 	
+	/**
+	 * @param restId
+	 * @param itemId
+	 * @param price
+	 * addRestaurant function is called while initializing data at the start.
+	 * HashMap restaurants is populated in this function which keeps account of the
+	 * restaurants present, item id's in that particular restaurant and what are there
+	 * respective prices
+	 */
 	public void addRestaurant(int restId, int itemId, int price)
 	{
 		Item item  = new Item();
@@ -130,6 +147,16 @@ public class OrderService {
 		}
 	}
 	
+	
+	/**
+	 * @param restId
+	 * @param itemId
+	 * @param qty
+	 * 
+	 * computeTotalBill calculates the total bill of an order and returns it to the requestOrder function.
+	 * 
+	 * @return total
+	 */
 	public int computeTotalBill(int restId, int itemId, int qty)
 	{
 		int total = 0;
@@ -145,6 +172,16 @@ public class OrderService {
 		return total;
 	}
 	
+	
+	/**
+	 * @param restId
+	 * @param itemId
+	 * 
+	 * isDatavalid checks if the given restaurant id is valid or not, and if valid
+	 * then is the item if given to it is valid or not.
+	 * 
+	 * @return 1 if valid else 0
+	 */
 	public int isDatavalid(int restId, int itemId) {
 		if(!restaurants.containsKey(restId)) {
 			System.out.println("restId not present");
@@ -162,6 +199,26 @@ public class OrderService {
 		return 0;
 	}
 	
+	
+	/**
+	 * @param ord
+	 * 
+	 * requestOrder function is called when the post request to end point requestOrder is done and in turn the
+	 * placeNewOerder function calls this method to compute the bill of the order and 
+	 * contact the wallet and restaurant services to successfully place the order.
+	 * 
+	 * Various checks are performed in this function like to check the validity of the order
+	 * Functionality includes :- 
+	 * 1. Computing Bill
+	 * 2. Deducting balance from the wallet if amount of bill is present in the account of that
+	 * 	  particular customer
+	 * 3. Contacting restaurant to check if particular quantity of specific item is present with them
+	 *    if yes then place the order successfully, else restoring the balance deducted from the
+	 *    particular customer's account.
+	 * 
+	 * @return It return 1 if order is placed or booked successfully else returns -1 to the function
+	 * placeNewOrder
+	 */
 	public int requestOrder(Order ord) {
 		if(isDatavalid(ord.getRestId(), ord.getItemId()) == 0) {
 			return -1;
@@ -245,6 +302,16 @@ public class OrderService {
 		}
 	}
 	
+	/**
+	 * @param agentId
+	 * agentSignIn handles the sign in functionality of the delivery application
+	 * It checks the status of the agent and changes the status to available 
+	 * if agent is signed-out
+	 * If agent is unavailable, then it does nothing
+	 * If agent is signed out and if some order is yet to be assigned
+	 * it allocates the lowest order id order to that agent and 
+	 * makes status of agent to unavailable.
+	 */
 	public void agentSignIn(int agentId) {
 		
 		String status = deliveryAgents.get(agentId);
@@ -265,6 +332,13 @@ public class OrderService {
 			
 	}
 	
+	
+	/**
+	 * @param agentId
+	 * agentSignOut handles the sign out functionality of the delivery application
+	 * It checks the status of the agent and changes the status to signed-out if 
+	 * status of agent is available
+	 */
 	public void agentSignOut(int agentId) {
 		
 		String status = deliveryAgents.get(agentId);
@@ -275,6 +349,16 @@ public class OrderService {
 			
 	}
 	
+	
+	/**
+	 * @param orderId
+	 * orderDelivered checks the status of the particular order and if the status of the 
+	 * order is assigned then it changes the status of the order to assigned
+	 * Also it changes the status of the agent to available
+	 * If any other orders are pending to be assigned then it assigns the 
+	 * lowest orderId order to the agent and makes the status of the order as assigned and also changes
+	 * the status of agent to unavailable 
+	 */
 	public void orderDelivered(int orderId) {
 		Order ord = orders.get(orderId);
 		if(ord.getStatus().equalsIgnoreCase("assigned")) {
@@ -296,6 +380,14 @@ public class OrderService {
 		}
 	}
 	
+	
+	/**
+	 * @param orderId
+	 * getOrderDetails returns the JSONObject having 3 key value pairs
+	 * 1. orderId : x
+	 * 2. status : y (status of that particular order)
+	 * 3. agantId : z (agent assigned to that order)
+	 */
 	public JSONObject getOrderDetails(int orderId) {	
 		JSONObject entity = new JSONObject(); 
 		entity.appendField("orderId", orderId);
@@ -304,6 +396,12 @@ public class OrderService {
 		return entity;
 	}
 	
+	/**
+	 * @param agentId
+	 * getAgentDetails returns the JSONObject having 2 key value pairs
+	 * 1. agentId: x
+	 * 2. status : y ( y is having one of the three values (available, unavailable, signed-out))
+	 */
 	public JSONObject getAgentDetails(int agentId) {	
 		JSONObject entity = new JSONObject(); 
 		entity.appendField("agentId", agentId);
@@ -311,6 +409,13 @@ public class OrderService {
 		return entity;
 	}
 	
+	/**
+	 * isAgentAvailable function checks if any status of any agent(in ascending order of agentId) is available or not
+	 * If any agent is available then it makes status of that agent unavailable and returns the agentId
+	 * of the agent available
+	 * else returns -1
+	 * @return
+	 */
 	public int isAgentAvailable() {
 		for(Map.Entry<Integer, String> agent : deliveryAgents.entrySet() ) {
 			if(agent.getValue().equalsIgnoreCase("available")) {
@@ -321,6 +426,13 @@ public class OrderService {
 		return -1;
 	}
 	
+	/**
+	 * isAnyOrderUnAssigned checks if there are any orders(in ascending order of orderId) which are
+	 * unassigned. If any order is unassigned then it changes its status to assigned and returns that 
+	 * particular order id
+	 * else returns -1;
+	 * @return
+	 */
 	public int isAnyOrderUnAssigned() {
 		for(Map.Entry<Integer, Order> order : orders.entrySet() ) {
 			if(order.getValue().getStatus().equalsIgnoreCase("unassigned")) {
@@ -331,6 +443,12 @@ public class OrderService {
 		return -1;
 	}
 	
+	/**
+	 * clearData is called when the reInitialize end point is called up
+	 * All the orders are cleared irrespective of their status
+	 * All the agents are signed out, that is their status is changed to signed-out 
+	 * @throws IOException
+	 */
 	public void clearData() throws IOException {
 		orders.clear();
 		globalOrderId = 1000;

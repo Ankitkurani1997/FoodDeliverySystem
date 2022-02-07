@@ -1,7 +1,6 @@
 package com.iisc.pods.controller;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;

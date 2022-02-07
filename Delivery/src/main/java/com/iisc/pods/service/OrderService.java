@@ -17,7 +17,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -30,9 +29,9 @@ import net.minidev.json.JSONObject;
 @Service
 public class OrderService {
 	
-	private final String URI_WALLET_DEDUCTBALANCE = "http://localhost:8082/deductBalance";
-	private final String URI_WALLET_ADDBALANCE = "http://localhost:8082/addBalance";
-	private final String URI_RESTAURANT = "http://localhost:8080/acceptOrder";
+	private final String URI_WALLET_DEDUCTBALANCE = "http://host.docker.internal:8082/deductBalance";
+	private final String URI_WALLET_ADDBALANCE = "http://host.docker.internal:8082/addBalance";
+	private final String URI_RESTAURANT = "http://host.docker.internal:8080/acceptOrder";
 	
 	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
 	Map<Integer, String> deliveryAgents = new TreeMap<>();
@@ -172,7 +171,6 @@ public class OrderService {
 		int flag = 0;
 		JSONObject entityWallet = null;
 		RestTemplate restTemplate = null;
-		ResponseEntity<Object> responseWallet = null;
 		HttpEntity<Object> httpEntityWallet = null;
 		HttpEntity<String> httpEntityRestaurant = null;
 		HttpStatus responseRestaurant = null;
@@ -189,7 +187,7 @@ public class OrderService {
 			entityWallet.appendField("amount", totalBill);
 			
 			httpEntityWallet = new HttpEntity<Object>(entityWallet.toString(), headers);
-			responseWallet = restTemplate.exchange(URI_WALLET_DEDUCTBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
+			restTemplate.exchange(URI_WALLET_DEDUCTBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
 			flag = 1;
 			
 			JSONObject entityRestaurant = new JSONObject();
@@ -230,7 +228,7 @@ public class OrderService {
 			}
 			else {
 				try {
-					responseWallet = restTemplate.exchange(URI_WALLET_ADDBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
+					restTemplate.exchange(URI_WALLET_ADDBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
 					return -1;
 				}
 				catch(HttpClientErrorException exception) {

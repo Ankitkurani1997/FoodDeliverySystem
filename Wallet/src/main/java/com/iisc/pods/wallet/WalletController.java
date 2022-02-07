@@ -1,6 +1,5 @@
 package com.iisc.pods.wallet;
 
-
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -22,6 +21,11 @@ public class WalletController {
 	@Autowired
 	TransactService transactService;
 	
+	/**
+	 * @param requestData (JSON payload of the form {"custId":num, "amount":z})
+	 * Increase the balance of custId num by z.
+	 * @return HTTP status code 201
+	 */
 	@PostMapping("/addBalance")
 	public ResponseEntity<Object> addMoney(@RequestBody HashMap<String, Integer> requestData) {
 		if(transactService.addBal(requestData.get("custId"), requestData.get("amount")))
@@ -30,6 +34,15 @@ public class WalletController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 	}
 	
+	
+	/**
+	 * @param requestData (JSON payload of the form {"custId":num, "amount":z})
+	 * If current balance of custId num is less than z, 
+	 * return HTTP status code 410, 
+	 * else reduce custId num's balance by z and 
+	 * return HTTP status code 201.
+	 * @return HTTP status code
+	 */
 	@PostMapping("/deductBalance")
 	public ResponseEntity<Object> deductMoney(@RequestBody HashMap<String, Integer> requestData) {
 		int status = transactService.deductBal(requestData.get("custId"), requestData.get("amount"));
@@ -42,7 +55,11 @@ public class WalletController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 	}
 	
-	
+	/**
+	 * @param num (An integer ID for the customer whose balance is to be fetched)
+	 * Returns the balance of the requested customer and a HTTP status code of 200 if the entered customer ID is valid.
+	 * @return JSON : {"custId":num, "balance":z} and HTTP status code of 200
+	 */
 	@GetMapping("/balance/{num}")
 	public ResponseEntity<Customer> getBalance(@PathVariable("num") int num) {
 		Customer cust = new Customer();
@@ -51,16 +68,16 @@ public class WalletController {
 		return new ResponseEntity<Customer>(cust, HttpStatus.OK);
 	}
 	
+	
+	/**
+	 * Set balance of all customers to the initial value as given in the /initialData.txt file.
+	 * @return HTTP status code 201
+	 * @throws IOException
+	 */
 	@PostMapping("/reInitialize")
 	public ResponseEntity<Object> reInit() throws IOException {
 		transactService.freshInitWallet();
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);
-	}
-	
-	@GetMapping("/initCust")
-	public ResponseEntity<Object> cust() {
-		transactService.addCust();
-		return ResponseEntity.status(HttpStatus.OK).body(null);
 	}
 
 }

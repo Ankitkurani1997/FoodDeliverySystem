@@ -1,5 +1,13 @@
 package com.iisc.pods.wallet.pojo;
 
+
+/**
+ * 
+ * @author sawrush
+ * A Java class that corresponds to a customer. Each customer has the following information :
+ * 		1. custId : An unique ID assigned to every Customer
+ * 		2. balance : The amount currently available in the customer's wallet.
+ */
 public class Customer {
 	
 	int custId, balance;

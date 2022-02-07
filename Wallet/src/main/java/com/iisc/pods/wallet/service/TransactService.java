@@ -14,8 +14,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class TransactService {
 	
+	//A set of key value pairs where the key is an customer ID and value is amount.
 	HashMap<Integer, Integer> customers = new HashMap<>();
 	
+	/**
+	 * @param custId
+	 * @param amount
+	 * Updates the key value pair where key is the given customer ID and the value is increased by the parameter amount.
+	 * @return true or false
+	 */
 	public boolean addBal(int custId, int amount) {
 		if(customers.containsKey(custId)) {
 			customers.put(custId, customers.get(custId)+amount);
@@ -24,6 +31,13 @@ public class TransactService {
 		return false;
 	}
 	
+	
+	/**
+	 * @param custId
+	 * @param amount
+	 * Updates the key value pair where key is the given customer ID and the value is decreased by the parameter amount.
+	 * @return Integer based on the update status
+	 */
 	public int deductBal(int custId, int amount) {
 		if(customers.containsKey(custId) && customers.get(custId) >= amount) {
 			customers.put(custId, customers.get(custId)-amount);
@@ -35,19 +49,22 @@ public class TransactService {
 	}
 	
 	
+	/**
+	 * @param custId
+	 * Fetch the balance of the customer with the given customer ID.
+	 * @return Integer based on the fetch status
+	 */
 	public int getBal(int custId) {
 		if(customers.containsKey(custId))
 			return customers.get(custId);
 		return -1;
 	}
 	
-	public void addCust() {
-		customers.put(301, 200000);
-		customers.put(302, 200000);
-		customers.put(303, 200000);
-	}
 	
-	
+	/**
+	 * Inserts key value pairs in the HashMap from the data found in initialData.txt
+	 * @throws IOException
+	 */
 	@EventListener(ApplicationReadyEvent.class)
 	public void initWallet() throws IOException {
 		
@@ -91,6 +108,11 @@ public class TransactService {
 		}
 	}
 	
+	/**
+	 * Clear out the key value pairs in the HashMap.
+	 * Fill out the key value pairs from initialData.txt
+	 * @throws IOException
+	 */
 	public void freshInitWallet() throws IOException {
 		customers = new HashMap<>();
 		this.initWallet();

@@ -15,8 +15,18 @@ import com.iisc.pods.restaurant.pojo.Restaurant;
 @Service
 public class InventoryService {
 	
+	//A set of key value pairs where the key is a restaurant ID and he value is set of key value pairs which store the inventory details of the restaurant.
 	HashMap<Integer, HashMap<Integer, Integer> > restaurants = new HashMap<>();
 	
+	/**
+	 * @param restId
+	 * @param itemId
+	 * @param qty
+	 * Updates the inventory if the required quantity is available.
+	 * Decrease the quantity of the item by the required quantity.
+	 * If the required quantity is not available, return a fail status.
+	 * @return Integer that describes the status of the operation.
+	 */
 	public int acceptOrder(int restId, int itemId, int qty) {
 		if(restaurants.containsKey(restId) && restaurants.get(restId).containsKey(itemId)) {
 			if(qty <= restaurants.get(restId).get(itemId))
@@ -31,7 +41,10 @@ public class InventoryService {
 	}
 	
 	
-	
+	/**
+	 * Inserts key value pairs in the HashMap from the data found in initialData.txt
+	 * @throws IOException
+	 */
 	@EventListener(ApplicationReadyEvent.class)
 	public void initRestaurants() throws IOException {
 		
@@ -72,18 +85,24 @@ public class InventoryService {
 		}
 	}
 	
+	/**
+	 * Clear out the key value pairs in the HashMap.
+	 * Fill out the key value pairs from initialData.txt
+	 * @throws IOException
+	 */
 	public void freshInitRestaurants() throws IOException {
 		restaurants = new HashMap<>();
 		this.initRestaurants();
 	}
-	
-	public void addRest() {
-		HashMap<Integer, Integer> t = new HashMap<>();
-		t.put(1, 20);
-		t.put(2, 13);
-		restaurants.put(101, t);
-	}
-	
+
+	/**
+	 * @param restId
+	 * @param itemId
+	 * @param qty
+	 * Update the quantity of the particular itemId provided as paramter
+	 * Add the givwn value in qty to the value of restId and the value of itemId
+	 * @return Integer that describes the status of the operation.
+	 */
 	public int refill(int restId, int itemId, int qty) {
 		if(restaurants.containsKey(restId) && restaurants.get(restId).containsKey(itemId)) {
 			restaurants.get(restId).put(itemId, restaurants.get(restId).get(itemId) + qty);
@@ -92,10 +111,4 @@ public class InventoryService {
 		return -1;
 	}
 	
-	public Restaurant getRest(int restId) {
-		Restaurant res = new Restaurant();
-		res.setRestId(restId);
-		res.setItems(restaurants.get(restId));
-		return res;
-	}
 }

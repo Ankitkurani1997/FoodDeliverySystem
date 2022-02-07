@@ -4,6 +4,7 @@ import requests
 
 # Tries to place an order when all the agents are already assigned to different orders
 # This order should be in unassigned state and no agent should be assigned to it
+# Also checks if lowest agent ID is assigned to an orde when multiple are available
 
 
 # RESTAURANT SERVICE    : http://localhost:8080

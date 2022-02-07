@@ -21,6 +21,16 @@ public class RestaurantController {
 	@Autowired
 	InventoryService inventoryService;
 	
+	/**
+	 * @param requestData (JSON payload of the form {“restId”: num, “itemId”: x, “qty”: y})
+	 * This end-point will be invoked by the Delivery service.
+	 * If the restaurant with ID num has at least y quantities of itemId x in its current inventory
+	 * then
+	 * 		reduce the inventory of item x in restaurant num by yreturn HTTP status code 201 (created)
+	 * else
+	 * 		return HTTP status code 410 (gone)
+	 * @return HTTP status code 201 or 410
+	 */
 	@PostMapping("/acceptOrder")
 	public ResponseEntity<Object> newOrder(@RequestBody HashMap<String, Integer> requestData) {
 		
@@ -34,6 +44,12 @@ public class RestaurantController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 	}
 	
+	/**
+	 * @param requestData (JSON payload of the form {“restId”: num, “itemId”: x, “qty”: y})
+	 * Increases the inventory of itemId x in restaurant num by y (provided num supplies x
+	 * as per /initialData.txt)
+	 * @return HTTP status code 201
+	 */
 	@PostMapping("/refillItem")
 	public ResponseEntity<Object> addToInventory(@RequestBody HashMap<String, Integer> requestData) {
 		
@@ -44,27 +60,15 @@ public class RestaurantController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 	}
 	
-	
+	/**
+	 * Set inventory of all items in all restaurants as given in the /initialData.txt file.
+	 * @return HTTP status code 201
+	 * @throws IOException
+	 */
 	@PostMapping("/reInitialize")
 	public ResponseEntity<Object> reInit() throws IOException {
 		inventoryService.freshInitRestaurants();
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);
 	}
-	
-	
-	
-	@GetMapping("/restInit")
-	public ResponseEntity<Object> rest() {
-		inventoryService.addRest();
-		return ResponseEntity.status(HttpStatus.OK).body(null);
-	}
-	
-	
-	@GetMapping("/inv/{num}")
-	public ResponseEntity<Restaurant> getInv(@PathVariable("num") int num) {
-		Restaurant res = inventoryService.getRest(num);
-		return new ResponseEntity<Restaurant>(res, HttpStatus.OK);
-	}
-	
 	
 }

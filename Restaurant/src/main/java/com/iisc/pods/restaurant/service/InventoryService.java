@@ -58,6 +58,7 @@ public class InventoryService {
 			while(sc.hasNextLine())
 			{
 				String line = sc.nextLine();
+				line = line.strip();
 				if(line.contains("****"))
 					break;
 				if(count==-1) {

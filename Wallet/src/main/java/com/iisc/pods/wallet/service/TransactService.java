@@ -76,6 +76,7 @@ public class TransactService {
 			int skip_count = 3, wallet_bal = 0;
 			while(sc.hasNextLine()) {
 				String line = sc.nextLine();
+				line = line.strip();
 				if(line.contains("****") && skip_count>0)
 					skip_count--;
 				else if(skip_count==0)

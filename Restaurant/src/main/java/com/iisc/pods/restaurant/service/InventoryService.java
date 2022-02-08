@@ -64,6 +64,8 @@ public class InventoryService {
 				if(count==-1) {
 					restId = Integer.parseInt(line.split(" ")[0]);
 					count = Integer.parseInt(line.split(" ")[1]);
+					if(count==0)
+						count=-1;
 				}
 				else if(count>0) {
 					items.put(Integer.parseInt(line.split(" ")[0]), Integer.parseInt(line.split(" ")[2]));

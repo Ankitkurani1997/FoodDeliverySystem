@@ -20,18 +20,20 @@ public class WalletController {
 	
 	@Autowired
 	TransactService transactService;
-	
+	private final Object lock = new Object();
 	/**
 	 * @param requestData (JSON payload of the form {"custId":num, "amount":z})
 	 * Increase the balance of custId num by z.
 	 * @return HTTP status code 201
 	 */
 	@PostMapping("/addBalance")
-	public ResponseEntity<Object> addMoney(@RequestBody HashMap<String, Integer> requestData) {
-		if(transactService.addBal(requestData.get("custId"), requestData.get("amount")))
-			return ResponseEntity.status(HttpStatus.CREATED).body(null);
-		else
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+	synchronized public ResponseEntity<Object> addMoney(@RequestBody HashMap<String, Integer> requestData) {
+		synchronized (lock) {
+			if(transactService.addBal(requestData.get("custId"), requestData.get("amount")))
+				return ResponseEntity.status(HttpStatus.CREATED).body(null);
+			else
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
 	}
 	
 	
@@ -44,15 +46,17 @@ public class WalletController {
 	 * @return HTTP status code
 	 */
 	@PostMapping("/deductBalance")
-	public ResponseEntity<Object> deductMoney(@RequestBody HashMap<String, Integer> requestData) {
-		int status = transactService.deductBal(requestData.get("custId"), requestData.get("amount"));
-		if(status == 1) {
-			return ResponseEntity.status(HttpStatus.CREATED).body(null);
+	synchronized public ResponseEntity<Object> deductMoney(@RequestBody HashMap<String, Integer> requestData) {
+		synchronized (lock) {
+			int status = transactService.deductBal(requestData.get("custId"), requestData.get("amount"));
+			if(status == 1) {
+				return ResponseEntity.status(HttpStatus.CREATED).body(null);
+			}
+			else if(status == 0)
+				return ResponseEntity.status(HttpStatus.GONE).body(null);
+			else
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
-		else if(status == 0)
-			return ResponseEntity.status(HttpStatus.GONE).body(null);
-		else
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 	}
 	
 	/**
@@ -62,10 +66,12 @@ public class WalletController {
 	 */
 	@GetMapping("/balance/{num}")
 	public ResponseEntity<Customer> getBalance(@PathVariable("num") int num) {
-		Customer cust = new Customer();
-		cust.setCustId(num);
-		cust.setBalance(transactService.getBal(num));
-		return new ResponseEntity<Customer>(cust, HttpStatus.OK);
+		synchronized (lock) {
+			Customer cust = new Customer();
+			cust.setCustId(num);
+			cust.setBalance(transactService.getBal(num));
+			return new ResponseEntity<Customer>(cust, HttpStatus.OK);
+		}
 	}
 	
 	
@@ -75,9 +81,11 @@ public class WalletController {
 	 * @throws IOException
 	 */
 	@PostMapping("/reInitialize")
-	public ResponseEntity<Object> reInit() throws IOException {
-		transactService.freshInitWallet();
-		return ResponseEntity.status(HttpStatus.CREATED).body(null);
+	synchronized public ResponseEntity<Object> reInit() throws IOException {
+		synchronized (lock) {
+			transactService.freshInitWallet();
+			return ResponseEntity.status(HttpStatus.CREATED).body(null);
+		}
 	}
 
 }

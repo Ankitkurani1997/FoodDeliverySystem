@@ -2,6 +2,7 @@ package com.iisc.pods.restaurant;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.locks.Lock;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,8 @@ public class RestaurantController {
 	@Autowired
 	InventoryService inventoryService;
 	
+	private final Object lock = new Object();
+	
 	/**
 	 * @param requestData (JSON payload of the form {“restId”: num, “itemId”: x, “qty”: y})
 	 * This end-point will be invoked by the Delivery service.
@@ -33,15 +36,15 @@ public class RestaurantController {
 	 */
 	@PostMapping("/acceptOrder")
 	public ResponseEntity<Object> newOrder(@RequestBody HashMap<String, Integer> requestData) {
-		
-		int status = inventoryService.acceptOrder(requestData.get("restId"), requestData.get("itemId"), requestData.get("qty"));
-		if(status == 1)
-			return ResponseEntity.status(HttpStatus.CREATED).body(null);
-			
-		else if(status == 0)
-			return ResponseEntity.status(HttpStatus.GONE).body(null);
-		else
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		synchronized (lock) {
+			int status = inventoryService.acceptOrder(requestData.get("restId"), requestData.get("itemId"), requestData.get("qty"));
+			if(status == 1)
+				return ResponseEntity.status(HttpStatus.CREATED).body(null);
+			else if(status == 0)
+				return ResponseEntity.status(HttpStatus.GONE).body(null);
+			else
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
 	}
 	
 	/**
@@ -51,13 +54,14 @@ public class RestaurantController {
 	 * @return HTTP status code 201
 	 */
 	@PostMapping("/refillItem")
-	public ResponseEntity<Object> addToInventory(@RequestBody HashMap<String, Integer> requestData) {
-		
-		int status = inventoryService.refill(requestData.get("restId"), requestData.get("itemId"), requestData.get("qty"));
-		if(status == 1)
-			return ResponseEntity.status(HttpStatus.CREATED).body(null);
-		else
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+	synchronized public ResponseEntity<Object> addToInventory(@RequestBody HashMap<String, Integer> requestData) {
+		synchronized (lock) {
+			int status = inventoryService.refill(requestData.get("restId"), requestData.get("itemId"), requestData.get("qty"));
+			if(status == 1)
+				return ResponseEntity.status(HttpStatus.CREATED).body(null);
+			else
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
 	}
 	
 	/**
@@ -66,9 +70,10 @@ public class RestaurantController {
 	 * @throws IOException
 	 */
 	@PostMapping("/reInitialize")
-	public ResponseEntity<Object> reInit() throws IOException {
-		inventoryService.freshInitRestaurants();
-		return ResponseEntity.status(HttpStatus.CREATED).body(null);
+	synchronized public ResponseEntity<Object> reInit() throws IOException {
+		synchronized (lock) {
+			inventoryService.freshInitRestaurants();
+			return ResponseEntity.status(HttpStatus.CREATED).body(null);
+		}
 	}
-	
 }

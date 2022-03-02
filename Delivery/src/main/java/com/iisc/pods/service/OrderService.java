@@ -30,9 +30,10 @@ import net.minidev.json.JSONObject;
 @Service
 public class OrderService {
 	
-	private final String URI_WALLET_DEDUCTBALANCE = "http://host.docker.internal:8082/deductBalance";
-	private final String URI_WALLET_ADDBALANCE = "http://host.docker.internal:8082/addBalance";
-	private final String URI_RESTAURANT = "http://host.docker.internal:8080/acceptOrder";
+	private final String URI_WALLET_DEDUCTBALANCE = "http://walletservice:8082/deductBalance";
+	private final String URI_WALLET_ADDBALANCE = "http://walletservice:8082/addBalance";
+	private final String URI_RESTAURANT = "http://restaurantservice:8080/acceptOrder";
+	private String URI_DATABASE = "http://databaseservice:8083/";
 	
 	HashMap<Integer, List<Item> > restaurants = new HashMap<>(); 
 	Map<Integer, String> deliveryAgents = new TreeMap<>();
@@ -236,9 +237,11 @@ public class OrderService {
 		
 		int flag = 0;
 		JSONObject entityWallet = null;
+		JSONObject entityDatabase = null;
 		RestTemplate restTemplate = null;
 		HttpEntity<Object> httpEntityWallet = null;
 		HttpEntity<String> httpEntityRestaurant = null;
+		HttpEntity<String> httpEntityDatabase = null;
 		HttpStatus responseRestaurant = null;
 		
 		try {
@@ -280,6 +283,21 @@ public class OrderService {
 					{
 						ord.setStatus("unassigned");
 					}
+					/*
+					changes
+					 */
+					entityDatabase = new JSONObject();
+					entityDatabase.appendField("orderId", ord.getOrderId());
+					entityDatabase.appendField("restId", ord.getRestId());
+					entityDatabase.appendField("agentId", ord.getAgentId());
+					entityDatabase.appendField("itemId", ord.getItemId());
+					entityDatabase.appendField("qty", ord.getQty());
+					entityDatabase.appendField("status", ord.getStatus());
+					entityDatabase.appendField("custId", ord.getCustId());
+
+					//httpEntityDatabase = new HttpEntity<String>(entityRestaurant.toString(), headers);
+					//restTemplate.exchange(URI_DATABASE + "addOrder", HttpMethod.POST, httpEntityDatabase, Object.class);
+					
 					orders.put(id ,ord);
 					return id;
 				}

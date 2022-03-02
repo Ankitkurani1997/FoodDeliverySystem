@@ -24,7 +24,7 @@ public class DeliveryController {
 	@Autowired
 	OrderService orderService;
 	
-	
+	private final Object lock = new Object();
 	/**
 	 * This is the end Point for reinitializing the Delivery application
 	 * Delete all orders from the records (no matter what their status is), and mark status of
@@ -34,10 +34,10 @@ public class DeliveryController {
 	@PostMapping("/reInitialize")
 	@ResponseBody
 	public ResponseEntity<String> initializeRecords() throws IOException {
-		
-		orderService.clearData();
-		return ResponseEntity.status(HttpStatus.CREATED).body(null);
-	
+		synchronized (lock) {
+			orderService.clearData();
+			return ResponseEntity.status(HttpStatus.CREATED).body(null);
+		}
 	}
 	
 	
@@ -51,19 +51,23 @@ public class DeliveryController {
 	@PostMapping("/requestOrder")
 	@ResponseBody
 	public ResponseEntity<Object> placeNewOrder(@RequestBody Order ord){
-		
-		int orderId = orderService.requestOrder(ord); 
-		if(orderId != -1)
-		{
-			JSONObject entity = new JSONObject();
-			entity.appendField("orderId", orderId);
-			return new ResponseEntity<Object>(entity, HttpStatus.CREATED);
+		synchronized (lock) {
+			System.out.println("Entering");
+			int orderId = orderService.requestOrder(ord); 
+			if(orderId != -1)
+			{
+				JSONObject entity = new JSONObject();
+				entity.appendField("orderId", orderId);
+				System.out.println("Leaving");
+				return new ResponseEntity<Object>(entity, HttpStatus.CREATED);
+				
+			}
+			else
+			{
+				System.out.println("Leaving");
+				return ResponseEntity.status(HttpStatus.GONE).body(null);
+			}	
 		}
-		else
-		{
-			return ResponseEntity.status(HttpStatus.GONE).body(null);
-		}
-		
 	}
 	
 	/**
@@ -78,11 +82,16 @@ public class DeliveryController {
 	@PostMapping("/agentSignIn")
 	@ResponseBody
 	public ResponseEntity<Object> agentSignIn(@RequestBody HashMap<String,Integer> requestData) {
-		if(!orderService.getDeliveryAgents().containsKey(requestData.get("agentId"))) {
-			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		synchronized (lock) {
+			System.out.println("Entering Login for Agent");
+			if(!orderService.getDeliveryAgents().containsKey(requestData.get("agentId"))) {
+				System.out.println("Leaving error agent");
+				return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+			}
+			orderService.agentSignIn(requestData.get("agentId"));	
+			System.out.println("Leaving Agent");
+			return ResponseEntity.status(HttpStatus.CREATED).body(null);
 		}
-		orderService.agentSignIn(requestData.get("agentId"));	
-		return ResponseEntity.status(HttpStatus.CREATED).body(null);
 	}
 	
 	
@@ -96,11 +105,11 @@ public class DeliveryController {
 	@PostMapping("/agentSignOut")
 	@ResponseBody
 	public ResponseEntity<String> agentSignOut(@RequestBody HashMap<String,Integer> requestData) {
-		
-		orderService.agentSignOut(requestData.get("agentId"));	
-		return ResponseEntity.status(HttpStatus.CREATED).body(null);
+		synchronized (lock) {
+			orderService.agentSignOut(requestData.get("agentId"));	
+			return ResponseEntity.status(HttpStatus.CREATED).body(null);
+		}
 	}
-	
 	
 	/**
 	 * @param requestData
@@ -113,16 +122,15 @@ public class DeliveryController {
 	@PostMapping("/orderDelivered")
 	@ResponseBody
 	public ResponseEntity<String> orderDelivered(@RequestBody HashMap<String, Integer> requestData ) {
-		
-		Integer orderId = requestData.get("orderId");
-		if(!orderService.getOrders().containsKey(orderId)) {
-			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		synchronized (lock) {
+			Integer orderId = requestData.get("orderId");
+			if(!orderService.getOrders().containsKey(orderId)) {
+				return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+			}
+			orderService.orderDelivered(orderId);
+			return ResponseEntity.status(HttpStatus.CREATED).body(null);
 		}
-		
-		orderService.orderDelivered(orderId);
-		return ResponseEntity.status(HttpStatus.CREATED).body(null);
 	}
-	
 	
 	/**
 	 * This endPoint returns the order details for the orderId provided
@@ -134,12 +142,13 @@ public class DeliveryController {
 	@GetMapping("/order/{num}")
 	@ResponseBody
 	public ResponseEntity<Object> getOrderInfo(@PathVariable("num") int num) {
-		
-		if(num >= orderService.getGlobalOrderId() || num <1000) {
-			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		synchronized (lock) {	
+			if(num >= orderService.getGlobalOrderId() || num <1000) {
+				return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+			}
+			JSONObject entity = orderService.getOrderDetails(num);
+			return new ResponseEntity<Object>(entity, HttpStatus.OK);
 		}
-		JSONObject entity = orderService.getOrderDetails(num);
-		return new ResponseEntity<Object>(entity, HttpStatus.OK);
 	}
 	
 	/**
@@ -151,11 +160,13 @@ public class DeliveryController {
 	@GetMapping("/agent/{num}")
 	@ResponseBody
 	public ResponseEntity<Object> getAgentInfo(@PathVariable("num") int num) {
-		if(!orderService.getDeliveryAgents().containsKey(num)) {
-			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		synchronized (lock) {
+			if(!orderService.getDeliveryAgents().containsKey(num)) {
+				return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+			}
+			JSONObject entity = orderService.getAgentDetails(num);
+			return new ResponseEntity<Object>(entity, HttpStatus.OK);
 		}
-		JSONObject entity = orderService.getAgentDetails(num);
-		return new ResponseEntity<Object>(entity, HttpStatus.OK);
 	}
 	
 }

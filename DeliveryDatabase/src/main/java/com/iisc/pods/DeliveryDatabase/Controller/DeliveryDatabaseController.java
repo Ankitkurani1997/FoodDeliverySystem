@@ -24,6 +24,8 @@ public class DeliveryDatabaseController {
 	
 	@Autowired
 	DatabaseService dbs;
+	
+	private final Object lock = new Object();
 
 	/**
 	 * This API takes an agent ID and a status as parameter and updates the agent's status. Used against agentSignIn and agentSignout.
@@ -33,11 +35,13 @@ public class DeliveryDatabaseController {
 	@PutMapping("/agentStatusChange")
 	@ResponseBody
 	public ResponseEntity<String> changeAgentStatus(@RequestBody Agent agent) {
+		synchronized (lock) {
 		
-		if(dbs.changeAgentStatus(agent) == 1)
-			return ResponseEntity.status(HttpStatus.CREATED).body(null);
-		else
-			return ResponseEntity.status(HttpStatus.GONE).body(null);
+			if(dbs.changeAgentStatus(agent) == 1)
+				return ResponseEntity.status(HttpStatus.CREATED).body(null);
+			else
+				return ResponseEntity.status(HttpStatus.GONE).body(null);
+		}
 	}
 	
 	
@@ -49,8 +53,10 @@ public class DeliveryDatabaseController {
 	@GetMapping("/agent/{num}")
 	@ResponseBody
 	public Agent getAgent(@PathVariable("num") int num) {
-		Agent agent = dbs.getAgent(num);
-		return agent;
+		synchronized (lock) {
+			Agent agent = dbs.getAgent(num);
+			return agent;
+		}
 	}
 	
 	/**
@@ -60,10 +66,12 @@ public class DeliveryDatabaseController {
 	@PostMapping("/reInitialize")
 	@ResponseBody
 	public ResponseEntity<String> clean() {
-		if(dbs.freshInit() == 1)
-			return ResponseEntity.status(HttpStatus.CREATED).body(null);
-		else
-			return ResponseEntity.status(HttpStatus.GONE).body(null);
+		synchronized (lock) {
+			if(dbs.freshInit() == 1)
+				return ResponseEntity.status(HttpStatus.CREATED).body(null);
+			else
+				return ResponseEntity.status(HttpStatus.GONE).body(null);
+		}
 	}
 	
 	/**
@@ -74,10 +82,12 @@ public class DeliveryDatabaseController {
 	@PostMapping("/createOrder")
 	@ResponseBody
 	public ResponseEntity<Orders> createOrder(@RequestBody HashMap<String,Integer> requestData) {
-		System.out.println(requestData.toString());
-		Orders order = dbs.createOrder(requestData.get("restId"), requestData.get("itemId"), requestData.get("qty"), requestData.get("custId"));
-		System.out.println(order.toString());
-		return new ResponseEntity<Orders>(order, HttpStatus.OK);
+		synchronized (lock) {
+			System.out.println(requestData.toString());
+			Orders order = dbs.createOrder(requestData.get("restId"), requestData.get("itemId"), requestData.get("qty"), requestData.get("custId"));
+			System.out.println(order.toString());
+			return new ResponseEntity<Orders>(order, HttpStatus.OK);
+		}
 	}
 	
 	
@@ -89,8 +99,10 @@ public class DeliveryDatabaseController {
 	@GetMapping("/order/{num}")
 	@ResponseBody
 	public Orders getOrder(@PathVariable("num") int num) {
-		Orders order = dbs.getOrder(num);
-		return order;
+		synchronized (lock) {
+			Orders order = dbs.getOrder(num);
+			return order;
+		}
 	}
 	
 	
@@ -103,9 +115,11 @@ public class DeliveryDatabaseController {
 	@GetMapping("/restaurant")
 	@ResponseBody
 	public Restaurant getOrder(@RequestParam int restId, @RequestParam int itemId) {
-		Restaurant res = dbs.getRestaurant(restId, itemId);
-		System.out.println(res.toString());
-		return res;
+		synchronized (lock) {
+			Restaurant res = dbs.getRestaurant(restId, itemId);
+			System.out.println(res.toString());
+			return res;
+		}
 	}
 	
 	/**
@@ -115,8 +129,10 @@ public class DeliveryDatabaseController {
 	@GetMapping("/unassignedOrders")
 	@ResponseBody
 	public Orders[] getUnassignedOrders() {
-		Orders[] order = dbs.getUnassignedOrders();
-		return order;
+		synchronized (lock) {
+			Orders[] order = dbs.getUnassignedOrders();
+			return order;
+		}
 	}
 	
 	/**
@@ -127,8 +143,10 @@ public class DeliveryDatabaseController {
 	@PutMapping("/assignOrder")
 	@ResponseBody
 	public ResponseEntity<String> assignOrder(@RequestBody HashMap<String,Integer> requestData) {
-		dbs.assignOrder(requestData.get("orderId"), requestData.get("agentId"));
-		return ResponseEntity.status(HttpStatus.CREATED).body(null);
+		synchronized (lock) {
+			dbs.assignOrder(requestData.get("orderId"), requestData.get("agentId"));
+			return ResponseEntity.status(HttpStatus.CREATED).body(null);
+		}
 	}
 	
 	/**
@@ -139,10 +157,11 @@ public class DeliveryDatabaseController {
 	@PutMapping("/deliverOrder/{num}")
 	@ResponseBody
 	public ResponseEntity<String> changeOrderStatus(@PathVariable("num") int num) {
-		
-		if(dbs.changeOrderStatus(num) == 1)
-			return ResponseEntity.status(HttpStatus.CREATED).body(null);
-		else
-			return ResponseEntity.status(HttpStatus.GONE).body(null);
+		synchronized (lock) {
+			if(dbs.changeOrderStatus(num) == 1)
+				return ResponseEntity.status(HttpStatus.CREATED).body(null);
+			else
+				return ResponseEntity.status(HttpStatus.GONE).body(null);
+		}
 	}
 }

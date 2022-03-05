@@ -242,7 +242,7 @@ public class OrderService {
 			return -1;
 		}*/
 		
-		String url = "http://ankitdatabase:8080/restaurant?restId=" + restId + "&itemId=" + itemId;
+		String url = "http://ankitdatabase:8083/restaurant?restId=" + restId + "&itemId=" + itemId;
 		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
 		JSONParser parser = new JSONParser();
 		JSONObject restaurant = (JSONObject) parser.parse(response.getBody());
@@ -271,7 +271,7 @@ public class OrderService {
 			entityWallet.appendField("amount", totalBill);
 			
 			httpEntityWallet = new HttpEntity<Object>(entityWallet.toString(), headers);
-			restTemplate.exchange("http://ankitwallet:8080/deductBalance", HttpMethod.POST, httpEntityWallet, Object.class);
+			restTemplate.exchange("http://ankitwallet:8082/deductBalance", HttpMethod.POST, httpEntityWallet, Object.class);
 			flag = 1;
 			
 			JSONObject entityRestaurant = new JSONObject();
@@ -289,7 +289,7 @@ public class OrderService {
 				entityDatabase.appendField("qty", qty);
 				entityDatabase.appendField("custId", custId);
 				
-				url = "http://ankitdatabase:8080/createOrder";
+				url = "http://ankitdatabase:8083/createOrder";
 				httpEntityDatabase = new HttpEntity<String>(entityDatabase.toString(), headers);
 				ResponseEntity<String> res = restTemplate.exchange(url, HttpMethod.POST, httpEntityDatabase, String.class);
 				parser = new JSONParser();
@@ -347,7 +347,7 @@ public class OrderService {
 			}
 			else {
 				try {
-					restTemplate.exchange("http://ankitwallet:8080/addBalance", HttpMethod.POST, httpEntityWallet, Object.class);
+					restTemplate.exchange("http://ankitwallet:8082/addBalance", HttpMethod.POST, httpEntityWallet, Object.class);
 					return -1;
 				}
 				catch(HttpClientErrorException exception) {
@@ -378,14 +378,14 @@ public class OrderService {
 	 */
 	public int agentSignIn(int agentId) throws net.minidev.json.parser.ParseException {
 		
-		String url = "http://ankitdatabase:8080/unassignedOrders";
+		String url = "http://ankitdatabase:8083/unassignedOrders";
 		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
 		
 		System.out.println("TT : " + response.getBody());
 		JSONParser parser = new JSONParser();
 		JSONArray arr = (JSONArray) parser.parse(response.getBody());
 		
-		url = "http://ankitdatabase:8080/agentStatusChange";
+		url = "http://ankitdatabase:8083/agentStatusChange";
 		JSONObject postData = new JSONObject();
 		postData.appendField("agentId", agentId);
 		postData.appendField("status", "available");
@@ -407,7 +407,7 @@ public class OrderService {
 			
 			
 			
-			url = "http://ankitdatabase:8080/assignOrder/";
+			url = "http://ankitdatabase:8083/assignOrder/";
 			postData = new JSONObject();
 			postData.appendField("orderId", orderId);
 			postData.appendField("agentId", agentId);
@@ -449,7 +449,7 @@ public class OrderService {
 	 */
 	public int agentSignOut(int agentId) {
 		
-		String url = "http://ankitdatabase:8080/agentStatusChange";
+		String url = "http://ankitdatabase:8083/agentStatusChange";
 		JSONObject postData = new JSONObject();
 		postData.appendField("agentId", agentId);
 		postData.appendField("status", "signed-out");
@@ -474,7 +474,7 @@ public class OrderService {
 	 */
 	public int orderDelivered(int orderId) {
 		
-		String url = "http://ankitdatabase:8080/deliverOrder/" + orderId;
+		String url = "http://ankitdatabase:8083/deliverOrder/" + orderId;
 		HttpStatus res = restTemplate.exchange(url, HttpMethod.PUT, null, String.class).getStatusCode();
 		
 		if(res != HttpStatus.CREATED)
@@ -511,7 +511,7 @@ public class OrderService {
 	 */
 	public JSONObject getOrderDetails(int orderId) throws net.minidev.json.parser.ParseException {
 		
-		String url = "http://ankitdatabase:8080/order/" + orderId;
+		String url = "http://ankitdatabase:8083/order/" + orderId;
 		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
 		
 		JSONParser parser = new JSONParser();
@@ -542,7 +542,7 @@ public class OrderService {
 	 * @throws net.minidev.json.parser.ParseException 
 	 */
 	public JSONObject getAgentDetails(int agentId) throws net.minidev.json.parser.ParseException {	
-		String url = "http://ankitdatabase:8080/agent/" + agentId;
+		String url = "http://ankitdatabase:8083/agent/" + agentId;
 		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
 		
 		JSONParser parser = new JSONParser();
@@ -591,7 +591,7 @@ public class OrderService {
 	 * @throws IOException
 	 */
 	public void clearData() throws IOException {
-		String url = "http://ankitdatabase:8080/reInitialize";
+		String url = "http://ankitdatabase:8083/reInitialize";
 		restTemplate.exchange(url, HttpMethod.POST, null, String.class);
 	}
 	

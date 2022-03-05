@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -25,7 +27,9 @@ import org.springframework.web.client.RestTemplate;
 import com.iisc.pods.pojo.Item;
 import com.iisc.pods.pojo.Order;
 
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 
 @Service
 public class OrderService {
@@ -41,8 +45,12 @@ public class OrderService {
 	
 	int globalOrderId;
 	
+	RestTemplate restTemplate = new RestTemplate();
+	HttpHeaders headers = new HttpHeaders();
+	
 	public OrderService(){
 		globalOrderId = 1000;
+		headers.setContentType(MediaType.APPLICATION_JSON);
 	}
 	
 	public int getGlobalOrderId() {
@@ -69,7 +77,6 @@ public class OrderService {
 	public void setDeliveryAgents(Map<Integer, String> deliveryAgents) {
 		this.deliveryAgents = deliveryAgents;
 	}
-
 	
 	/**
 	 * 
@@ -228,12 +235,20 @@ public class OrderService {
 	 * 
 	 * @return It return 1 if order is placed or booked successfully else returns -1 to the function
 	 * placeNewOrder
+	 * @throws net.minidev.json.parser.ParseException 
 	 */
-	public int requestOrder(Order ord) {
-		if(isDatavalid(ord.getRestId(), ord.getItemId()) == 0) {
+	public int requestOrder(int custId, int restId, int itemId, int qty) throws net.minidev.json.parser.ParseException {
+		/*if(isDatavalid(ord.getRestId(), ord.getItemId()) == 0) {
 			return -1;
-		}
-		int totalBill = computeTotalBill(ord.getRestId(), ord.getItemId(), ord.getQty());
+		}*/
+		
+		String url = "http://localhost:8080/restaurant?restId=" + restId + "&itemId=" + itemId;
+		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
+		JSONParser parser = new JSONParser();
+		JSONObject restaurant = (JSONObject) parser.parse(response.getBody());
+		
+		System.out.println(restaurant.toString());
+		int totalBill = qty * (Integer) restaurant.get("price");
 		
 		int flag = 0;
 		JSONObject entityWallet = null;
@@ -252,59 +267,79 @@ public class OrderService {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			
 			entityWallet = new JSONObject();
-			entityWallet.appendField("custId", ord.getCustId());
+			entityWallet.appendField("custId", custId);
 			entityWallet.appendField("amount", totalBill);
 			
 			httpEntityWallet = new HttpEntity<Object>(entityWallet.toString(), headers);
-			restTemplate.exchange(URI_WALLET_DEDUCTBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
+			restTemplate.exchange("http://localhost:8086/deductBalance", HttpMethod.POST, httpEntityWallet, Object.class);
 			flag = 1;
 			
 			JSONObject entityRestaurant = new JSONObject();
-			entityRestaurant.appendField("restId", ord.getRestId());
-			entityRestaurant.appendField("itemId", ord.getItemId());
-			entityRestaurant.appendField("qty", ord.getQty());
+			entityRestaurant.appendField("restId", restId);
+			entityRestaurant.appendField("itemId", itemId);
+			entityRestaurant.appendField("qty", qty);
 			
 			httpEntityRestaurant = new HttpEntity<String>(entityRestaurant.toString(), headers);
-			responseRestaurant = restTemplate.exchange(URI_RESTAURANT, HttpMethod.POST, httpEntityRestaurant, String.class).getStatusCode();
+			responseRestaurant = restTemplate.exchange("http://localhost:8084/acceptOrder", HttpMethod.POST, httpEntityRestaurant, String.class).getStatusCode();
 			
-			int id = globalOrderId;
-			ord.setOrderId(id);
-			globalOrderId++;
-			
-				if(responseRestaurant == HttpStatus.CREATED) {
-					int agentAssigned = isAgentAvailable();
-			
-					if(agentAssigned!=-1)
-					{
-						ord.setStatus("assigned");
-						ord.setAgentId(agentAssigned);
-					}
-					else
-					{
-						ord.setStatus("unassigned");
-					}
-					/*
-					changes
-					 */
-					entityDatabase = new JSONObject();
-					entityDatabase.appendField("orderId", ord.getOrderId());
-					entityDatabase.appendField("restId", ord.getRestId());
-					entityDatabase.appendField("agentId", ord.getAgentId());
-					entityDatabase.appendField("itemId", ord.getItemId());
-					entityDatabase.appendField("qty", ord.getQty());
-					entityDatabase.appendField("status", ord.getStatus());
-					entityDatabase.appendField("custId", ord.getCustId());
-
-					//httpEntityDatabase = new HttpEntity<String>(entityRestaurant.toString(), headers);
-					//restTemplate.exchange(URI_DATABASE + "addOrder", HttpMethod.POST, httpEntityDatabase, Object.class);
-					
-					orders.put(id ,ord);
-					return id;
-				}
-				else
-				{
+			if(responseRestaurant == HttpStatus.CREATED) {
+				entityDatabase = new JSONObject();
+				entityDatabase.appendField("restId", restId);
+				entityDatabase.appendField("itemId", itemId);
+				entityDatabase.appendField("qty", qty);
+				entityDatabase.appendField("custId", custId);
+				
+				url = "http://localhost:8080/createOrder";
+				httpEntityDatabase = new HttpEntity<String>(entityDatabase.toString(), headers);
+				ResponseEntity<String> res = restTemplate.exchange(url, HttpMethod.POST, httpEntityDatabase, String.class);
+				parser = new JSONParser();
+				JSONObject order = (JSONObject) parser.parse(res.getBody());
+				
+				if(res.getStatusCode() != HttpStatus.OK)
 					return -1;
-				}
+				System.out.println("Test1 : " + order.toString());
+				return Integer.parseInt(order.get("orderId").toString());
+			}
+			return -1;
+			
+//			int id = globalOrderId;
+//			ord.setOrderId(id);
+//			globalOrderId++;
+//			
+//				if(responseRestaurant == HttpStatus.CREATED) {
+//					int agentAssigned = isAgentAvailable();
+//			
+//					if(agentAssigned!=-1)
+//					{
+//						ord.setStatus("assigned");
+//						ord.setAgentId(agentAssigned);
+//					}
+//					else
+//					{
+//						ord.setStatus("unassigned");
+//					}
+//					/*
+//					changes
+//					 */
+//					entityDatabase = new JSONObject();
+//					entityDatabase.appendField("orderId", ord.getOrderId());
+//					entityDatabase.appendField("restId", ord.getRestId());
+//					entityDatabase.appendField("agentId", ord.getAgentId());
+//					entityDatabase.appendField("itemId", ord.getItemId());
+//					entityDatabase.appendField("qty", ord.getQty());
+//					entityDatabase.appendField("status", ord.getStatus());
+//					entityDatabase.appendField("custId", ord.getCustId());
+//
+//					//httpEntityDatabase = new HttpEntity<String>(entityRestaurant.toString(), headers);
+//					//restTemplate.exchange(URI_DATABASE + "addOrder", HttpMethod.POST, httpEntityDatabase, Object.class);
+//					
+//					orders.put(id ,ord);
+//					return id;
+//				}
+//				else
+//				{
+//					return -1;
+//				}
 		}
 		catch (HttpClientErrorException e) {
 			if(flag == 0) {
@@ -312,7 +347,7 @@ public class OrderService {
 			}
 			else {
 				try {
-					restTemplate.exchange(URI_WALLET_ADDBALANCE, HttpMethod.POST, httpEntityWallet, Object.class);
+					restTemplate.exchange("http://localhost:8086/addBalance", HttpMethod.POST, httpEntityWallet, Object.class);
 					return -1;
 				}
 				catch(HttpClientErrorException exception) {
@@ -321,6 +356,7 @@ public class OrderService {
 			}
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			if(flag==0)
 				System.out.println("Issue in deducting balance from wallet");
 			else
@@ -338,10 +374,55 @@ public class OrderService {
 	 * If agent is signed out and if some order is yet to be assigned
 	 * it allocates the lowest order id order to that agent and 
 	 * makes status of agent to unavailable.
+	 * @throws net.minidev.json.parser.ParseException 
 	 */
-	public void agentSignIn(int agentId) {
+	public int agentSignIn(int agentId) throws net.minidev.json.parser.ParseException {
 		
-		String status = deliveryAgents.get(agentId);
+		String url = "http://localhost:8080/unassignedOrders";
+		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
+		
+		System.out.println("TT : " + response.getBody());
+		JSONParser parser = new JSONParser();
+		JSONArray arr = (JSONArray) parser.parse(response.getBody());
+		
+		url = "http://localhost:8080/agentStatusChange";
+		JSONObject postData = new JSONObject();
+		postData.appendField("agentId", agentId);
+		postData.appendField("status", "available");
+		
+		HttpEntity<Object> httpData = new HttpEntity<Object>(postData.toString(), headers);
+		HttpStatus res = restTemplate.exchange(url, HttpMethod.PUT, httpData, String.class).getStatusCode();
+		
+		if(res != HttpStatus.CREATED)
+			return -1;
+		
+		if(arr.size() != 0) {
+			int orderId = Integer.MAX_VALUE;
+			for(int i=0;i<arr.size();i++) {
+				JSONObject obj = (JSONObject) arr.get(i);
+				if((Integer) obj.get("orderId") < orderId)
+					orderId = (Integer) obj.get("orderId");
+			}
+			
+			
+			
+			
+			url = "http://localhost:8080/assignOrder/";
+			postData = new JSONObject();
+			postData.appendField("orderId", orderId);
+			postData.appendField("agentId", agentId);
+			httpData = new HttpEntity<Object>(postData.toString(), headers);
+			res = restTemplate.exchange(url, HttpMethod.PUT, httpData, String.class).getStatusCode();
+			
+			if(res != HttpStatus.CREATED)
+				return -1;
+		}
+		
+		
+		
+		return 1;
+		
+		/*String status = deliveryAgents.get(agentId);
 		if(!status.equalsIgnoreCase("available"))
 		{
 			int orderId = isAnyOrderUnAssigned();
@@ -355,7 +436,7 @@ public class OrderService {
 			else {
 				deliveryAgents.put(agentId, "available");
 			}
-		}
+		}*/
 			
 	}
 	
@@ -366,14 +447,19 @@ public class OrderService {
 	 * It checks the status of the agent and changes the status to signed-out if 
 	 * status of agent is available
 	 */
-	public void agentSignOut(int agentId) {
+	public int agentSignOut(int agentId) {
 		
-		String status = deliveryAgents.get(agentId);
-		if(!status.equalsIgnoreCase("signed-out") && !status.equalsIgnoreCase("unavailable"))
-		{
-			deliveryAgents.put(agentId, "signed-out");
-		}
-			
+		String url = "http://localhost:8080/agentStatusChange";
+		JSONObject postData = new JSONObject();
+		postData.appendField("agentId", agentId);
+		postData.appendField("status", "signed-out");
+		
+		HttpEntity<Object> httpData = new HttpEntity<Object>(postData.toString(), headers);
+		HttpStatus res = restTemplate.exchange(url, HttpMethod.PUT, httpData, String.class).getStatusCode();
+		
+		if(res != HttpStatus.CREATED)
+			return -1;
+		return 1;
 	}
 	
 	
@@ -386,8 +472,15 @@ public class OrderService {
 	 * lowest orderId order to the agent and makes the status of the order as assigned and also changes
 	 * the status of agent to unavailable 
 	 */
-	public void orderDelivered(int orderId) {
-		Order ord = orders.get(orderId);
+	public int orderDelivered(int orderId) {
+		
+		String url = "http://localhost:8080/deliverOrder/" + orderId;
+		HttpStatus res = restTemplate.exchange(url, HttpMethod.PUT, null, String.class).getStatusCode();
+		
+		if(res != HttpStatus.CREATED)
+			return -1;
+		return 1;
+		/*Order ord = orders.get(orderId);
 		if(ord.getStatus().equalsIgnoreCase("assigned")) {
 			ord.setStatus("delivered");
 			orders.put(orderId, ord);
@@ -404,7 +497,7 @@ public class OrderService {
 			{
 				deliveryAgents.put(ord.getAgentId(), "available");
 			}
-		}
+		}*/
 	}
 	
 	
@@ -414,12 +507,30 @@ public class OrderService {
 	 * 1. orderId : x
 	 * 2. status : y (status of that particular order)
 	 * 3. agantId : z (agent assigned to that order)
+	 * @throws net.minidev.json.parser.ParseException 
 	 */
-	public JSONObject getOrderDetails(int orderId) {	
-		JSONObject entity = new JSONObject(); 
-		entity.appendField("orderId", orderId);
-		entity.appendField("status", orders.get(orderId).getStatus());
-		entity.appendField("agentId", orders.get(orderId).getAgentId());		
+	public JSONObject getOrderDetails(int orderId) throws net.minidev.json.parser.ParseException {
+		
+		String url = "http://localhost:8080/order/" + orderId;
+		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
+		
+		JSONParser parser = new JSONParser();
+		JSONObject res = (JSONObject) parser.parse(response.getBody());
+		
+		JSONObject entity = new JSONObject();
+		entity.appendField("orderId", res.get("orderId"));
+		entity.appendField("custId", res.get("custId"));
+		entity.appendField("status", res.get("status"));
+		
+		JSONObject restaurant = (JSONObject) res.get("restaurant");
+		entity.appendField("restId", restaurant.get("restId"));
+		entity.appendField("itemId", restaurant.get("itemId"));
+		
+		JSONObject agent = (JSONObject) res.get("agent");
+		if(agent != null)
+			entity.appendField("agentId", agent.get("agentId"));
+		else
+			entity.appendField("agentId", -1);
 		return entity;
 	}
 	
@@ -428,11 +539,14 @@ public class OrderService {
 	 * getAgentDetails returns the JSONObject having 2 key value pairs
 	 * 1. agentId: x
 	 * 2. status : y ( y is having one of the three values (available, unavailable, signed-out))
+	 * @throws net.minidev.json.parser.ParseException 
 	 */
-	public JSONObject getAgentDetails(int agentId) {	
-		JSONObject entity = new JSONObject(); 
-		entity.appendField("agentId", agentId);
-		entity.appendField("status", deliveryAgents.get(agentId));		
+	public JSONObject getAgentDetails(int agentId) throws net.minidev.json.parser.ParseException {	
+		String url = "http://localhost:8080/agent/" + agentId;
+		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
+		
+		JSONParser parser = new JSONParser();
+		JSONObject entity = (JSONObject) parser.parse(response.getBody());
 		return entity;
 	}
 	
@@ -477,11 +591,8 @@ public class OrderService {
 	 * @throws IOException
 	 */
 	public void clearData() throws IOException {
-		orders.clear();
-		globalOrderId = 1000;
-		for(Map.Entry<Integer, String> agent : deliveryAgents.entrySet() ) {
-			agent.setValue("signed-out");
-		}
+		String url = "http://localhost:8080/reInitialize";
+		restTemplate.exchange(url, HttpMethod.POST, null, String.class);
 	}
 	
 }

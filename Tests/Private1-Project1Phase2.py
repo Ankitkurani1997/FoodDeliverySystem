@@ -10,20 +10,20 @@ import requests
 # WALLET SERVICE        : http://localhost:8082
 
 
-def t1(result):  # First concurrent request
+def t1(result, order_id):  # First concurrent request
 
     # Customer 301 requests an order of item 1, quantity 3 from restaurant 101
     http_response = requests.post(
-        "http://localhost:8081/requestOrder", json={"custId": 301, "restId": 101, "itemId": 1, "qty": 3})
+        "http://localhost:8081/orderDelivered", json={"orderId":order_id})
 
     result["1"] = http_response
 
 
-def t2(result):  # Second concurrent request
+def t2(result, order_id):  # Second concurrent request
 
     # Customer 302 requests an order of item 1, quantity 3 from restaurant 101
     http_response = requests.post(
-        "http://localhost:8081/requestOrder", json={"custId": 302, "restId": 101, "itemId": 1, "qty": 3})
+        "http://localhost:8081/orderDelivered", json={"orderId":order_id})
 
     result["2"] = http_response
 
@@ -47,10 +47,19 @@ def test():
 
     if(http_response.status_code != HTTPStatus.CREATED):
         return 'Fail1'
+        
+    
+    
+    http_response = requests.post(
+        "http://localhost:8081/requestOrder", json={"custId": 301, "restId": 101, "itemId": 2, "qty": 2})
 
+    if(http_response.status_code != HTTPStatus.CREATED):
+        return 'Fail1'
+
+    order_id = http_response.json().get("orderId")
     ### Parallel Execution Begins ###
-    thread1 = Thread(target=t1, kwargs={"result": result})
-    thread2 = Thread(target=t2, kwargs={"result": result})
+    thread1 = Thread(target=t1, kwargs={"result": result, "order_id":order_id})
+    thread2 = Thread(target=t2, kwargs={"result": result, "order_id":order_id})
 
     thread1.start()
     thread2.start()
@@ -59,42 +68,26 @@ def test():
     thread2.join()
 
     ### Parallel Execution Ends ###
-
-    order_id1 = result["1"].json().get("orderId")
     status_code1 = result["1"].status_code
-
-    order_id2 = result["2"].json().get("orderId")
     status_code2 = result["2"].status_code
-
-    if (status_code1 != status_code2 and status_code2 != HTTPStatus.CREATED) or order_id1 == order_id2:
-        return "Fail2"
+    
+    if(status_code1 != HTTPStatus.CREATED and status_code2 != HTTPStatus.CREATED):
+        return "Fail90"
 
     # Check status of first order
     http_response = requests.get(
-        f"http://localhost:8081/order/{order_id1}")
+        f"http://localhost:8081/order/{order_id}")
 
     if(http_response.status_code != HTTPStatus.OK):
         return 'Fail3'
 
     res_body = http_response.json()
 
-    agent_id1 = res_body.get("agentId")
-    order_status1 = res_body.get("status")
+    agent_id = res_body.get("agentId")
+    order_status = res_body.get("status")
 
-    # Check status of second order
-    http_response = requests.get(
-        f"http://localhost:8081/order/{order_id2}")
-
-    res_body = http_response.json()
-
-    agent_id2 = res_body.get("agentId")
-    order_status2 = res_body.get("status")
-
-    if((order_status1 == 'assigned' and order_status2 == 'assigned') or (order_status1 == 'unassigned' and order_status2 == 'unassigned')):
-        return 'Fail4'
-
-    if((agent_id1 == 201 and agent_id2 == 201) or (agent_id1 == -1 and agent_id2 == -1)):
-        return 'Fail5'
+    if order_status != 'delivered' and agent_id != 201:
+       return "Fail91"
 
     return 'Pass'
 

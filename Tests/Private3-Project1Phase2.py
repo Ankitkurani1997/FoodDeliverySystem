@@ -14,7 +14,7 @@ def t1(result, rest_id, item_id, qty):  # First concurrent request
 
     # Customer 301 requests an order of item 1, quantity 3 from restaurant 101
     http_response = requests.post(
-        "http://localhost:8084/refillItem", json={"restId":rest_id, "itemId":item_id, "qty":qty})
+        "http://localhost:8080/refillItem", json={"restId":rest_id, "itemId":item_id, "qty":qty})
 
     result["1"] = http_response
 
@@ -23,7 +23,7 @@ def t2(result, rest_id, item_id, qty):  # Second concurrent request
 
     # Customer 302 requests an order of item 1, quantity 3 from restaurant 101
     http_response = requests.post(
-        "http://localhost:8084/refillItem", json={"restId":rest_id, "itemId":item_id, "qty":qty})
+        "http://localhost:8080/refillItem", json={"restId":rest_id, "itemId":item_id, "qty":qty})
 
     result["2"] = http_response
 
@@ -33,13 +33,13 @@ def test():
     result = {}
 
     # Reinitialize Restaurant service
-    http_response = requests.post("http://localhost:8084/reInitialize")
+    http_response = requests.post("http://localhost:8080/reInitialize")
 
     # Reinitialize Delivery service
     http_response = requests.post("http://localhost:8081/reInitialize")
 
     # Reinitialize Wallet service
-    http_response = requests.post("http://localhost:8086/reInitialize")
+    http_response = requests.post("http://localhost:8082/reInitialize")
         
     ### Parallel Execution Begins ###
     thread1 = Thread(target=t1, kwargs={"result": result, "rest_id":101, "item_id":1, "qty":10})
@@ -62,7 +62,7 @@ def test():
 
     # Check status of first order
     http_response = requests.post(
-        f"http://localhost:8086/addBalance", json = {"custId":301, "amount":10000})
+        f"http://localhost:8082/addBalance", json = {"custId":301, "amount":10000})
         
     if(http_response.status_code != HTTPStatus.CREATED):
         return "Fail11"

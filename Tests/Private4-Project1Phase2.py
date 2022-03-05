@@ -50,13 +50,13 @@ def test():
     result = {}
 
     # Reinitialize Restaurant service
-    http_response = requests.post("http://localhost:8084/reInitialize")
+    http_response = requests.post("http://localhost:8080/reInitialize")
 
     # Reinitialize Delivery service
     http_response = requests.post("http://localhost:8081/reInitialize")
 
     # Reinitialize Wallet service
-    http_response = requests.post("http://localhost:8086/reInitialize")
+    http_response = requests.post("http://localhost:8082/reInitialize")
         
         
     http_response = requests.post("http://localhost:8081/agentSignIn", json={"agentId":201})
